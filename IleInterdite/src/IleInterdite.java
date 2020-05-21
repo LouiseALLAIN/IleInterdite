@@ -275,13 +275,6 @@ class Joueur{
 		this.y = y;
 		this.nbActions = 0;
 	}
-	
-	protected void caseSuivante(int k) {
-		if(k == KeyEvent.VK_RIGHT) x+=1;
-		else if(k == KeyEvent.VK_LEFT) x-=1;
-		else if(k == KeyEvent.VK_UP) y-=1;
-		else if (k == KeyEvent.VK_DOWN) y+=1;
-	}
 }  
 
 /**
