@@ -90,8 +90,8 @@ class CModele extends Observable {
     public static final int HAUTEUR=10, LARGEUR=15;
     /** On stocke un tableau de cellules. */
     private Cellule[][] cellules;
-    Joueur joueur1;
-    Joueur joueur2;
+    int nbJoueurs = 2;
+    Joueur[] joueurs = new Joueur[nbJoueurs];
     int tour;
 
     /** Construction : on initialise un tableau de cellules. */
@@ -102,14 +102,15 @@ class CModele extends Observable {
 	 */ 
     	int x = (int)(Math.random() * LARGEUR + 1);
     	int y = (int)(Math.random() * HAUTEUR + 1);
-	    joueur1 = new Joueur(x, y);
-	    joueur2 = new Joueur(x, y);
+    	for (int i = 0; i < nbJoueurs; i++) {
+    		joueurs[i] = new Joueur(x, y);
+    	}
 	    tour = 1;
 		cellules = new Cellule[LARGEUR+2][HAUTEUR+2];
 		for(int i=0; i<LARGEUR+2; i++) {
 		    for(int j=0; j<HAUTEUR+2; j++) {
 			cellules[i][j] = new Cellule(this,i, j);
-				if (i == joueur1.x && j == joueur1.y) {
+				if (i == x && j == y) {
 					cellules[i][j].presenceJoueur = true;
 					cellules[i][j].type = elements.heliport;
 				}
@@ -181,14 +182,7 @@ class CModele extends Observable {
 		else cellules[x1][y1].etat = etat.submergee;
 		if(cellules[x2][y2].etat == etat.normale) cellules[x2][y2].etat = etat.inondee;
 		else cellules[x2][y2].etat = etat.submergee;
-		if(tour == 1) {
-			joueur1.nbActions=0;
-			tour = 2;
-		}
-		else {
-			joueur2.nbActions = 0;
-			tour = 1;
-		}
+		tour=(tour+1)%nbJoueurs;
 		/**
 		 * Pour finir, le modèle ayant changé, on signale aux observateurs
 		 * qu'ils doivent se mettre à jour.
@@ -197,30 +191,19 @@ class CModele extends Observable {
     }
     
     public void deplace(int k) {
-    	if(tour == 1) {
-	    	if(joueur1.nbActions < 3) {
-		    	cellules[joueur1.x][joueur1.y].presenceJoueur = false;
-		    	if(k == KeyEvent.VK_RIGHT && cellules[joueur1.x+1][joueur1.y].etat != etat.submergee && joueur1.x+1 <= LARGEUR) joueur1.x+=1;
-				else if(k == KeyEvent.VK_LEFT && cellules[joueur1.x-1][joueur1.y].etat != etat.submergee && joueur1.x-1 > 0) joueur1.x-=1;
-				else if(k == KeyEvent.VK_UP && cellules[joueur1.x][joueur1.y-1].etat != etat.submergee && joueur1.y-1 > 0) joueur1.y-=1;
-				else if (k == KeyEvent.VK_DOWN && cellules[joueur1.x][joueur1.y+1].etat != etat.submergee && joueur1.y+1 <= HAUTEUR) joueur1.y+=1;
-	    	}
-	    	joueur1.nbActions++;
+		cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+		if(k == KeyEvent.VK_RIGHT && cellules[joueurs[tour].x+1][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x+1 <= LARGEUR) joueurs[tour].x+=1;
+		else if(k == KeyEvent.VK_LEFT && cellules[joueurs[tour].x-1][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x-1 > 0) joueurs[tour].x-=1;
+		else if(k == KeyEvent.VK_UP && cellules[joueurs[tour].x][joueurs[tour].y-1].etat != etat.submergee && joueurs[tour].y-1 > 0) joueurs[tour].y-=1;
+		else if (k == KeyEvent.VK_DOWN && cellules[joueurs[tour].x][joueurs[tour].y+1].etat != etat.submergee && joueurs[tour].y+1 <= HAUTEUR) joueurs[tour].y+=1;
+	    joueurs[tour].nbActions++;
+	    for (int i = 0; i < nbJoueurs; i++) {
+	    	cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = true;
+	    }
+    	if (joueurs[tour].nbActions == 3) {
+    		avance();
+    		joueurs[tour].nbActions = 0;
     	}
-    	else {
-    		if(joueur2.nbActions < 3) {
-		    	cellules[joueur2.x][joueur2.y].presenceJoueur = false;
-		    	if(k == KeyEvent.VK_RIGHT && cellules[joueur2.x+1][joueur2.y].etat != etat.submergee && joueur2.x+1 <= LARGEUR) joueur2.x+=1;
-				else if(k == KeyEvent.VK_LEFT && cellules[joueur2.x-1][joueur2.y].etat != etat.submergee && joueur2.x-1 > 0) joueur2.x-=1;
-				else if(k == KeyEvent.VK_UP && cellules[joueur2.x][joueur2.y-1].etat != etat.submergee && joueur2.y-1 > 0) joueur2.y-=1;
-				else if (k == KeyEvent.VK_DOWN && cellules[joueur2.x][joueur2.y+1].etat != etat.submergee && joueur2.y+1 <= HAUTEUR) joueur2.y+=1;
-		    	cellules[joueur2.x][joueur2.y].presenceJoueur = true;
-	    	}
-	    	joueur2.nbActions++;
-    	}
-    	cellules[joueur1.x][joueur1.y].presenceJoueur = true;
-    	cellules[joueur2.x][joueur2.y].presenceJoueur = true;
-    	if (joueur1.nbActions == 3 || joueur2.nbActions == 3) avance();
 	    	notifyObservers();
     }
     
