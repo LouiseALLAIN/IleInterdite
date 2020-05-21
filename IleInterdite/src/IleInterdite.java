@@ -207,6 +207,35 @@ class CModele extends Observable {
 	    	notifyObservers();
     }
     
+    public void asseche(int k) {
+    	if(k == KeyEvent.VK_RIGHT && cellules[joueurs[tour].x+1][joueurs[tour].y].etat == etat.inondee && joueurs[tour].x+1 <= LARGEUR) {
+    		cellules[joueurs[tour].x+1][joueurs[tour].y].etat = etat.normale;
+    		joueurs[tour].nbActions+=1;
+    	}
+		else if(k == KeyEvent.VK_LEFT && cellules[joueurs[tour].x-1][joueurs[tour].y].etat == etat.inondee && joueurs[tour].x-1 > 0) {
+			cellules[joueurs[tour].x-1][joueurs[tour].y].etat = etat.normale;
+    		joueurs[tour].nbActions+=1;
+		}
+		else if(k == KeyEvent.VK_UP && cellules[joueurs[tour].x][joueurs[tour].y-1].etat == etat.inondee && joueurs[tour].y-1 > 0) {
+			cellules[joueurs[tour].x][joueurs[tour].y-1].etat = etat.normale;
+    		joueurs[tour].nbActions+=1;
+		}
+		else if (k == KeyEvent.VK_DOWN && cellules[joueurs[tour].x][joueurs[tour].y+1].etat == etat.inondee && joueurs[tour].y+1 <= HAUTEUR) {
+			cellules[joueurs[tour].x+1][joueurs[tour].y+1].etat = etat.normale;
+    		joueurs[tour].nbActions+=1;
+		}
+		else if (k == KeyEvent.VK_ENTER && cellules[joueurs[tour].x][joueurs[tour].y].etat == etat.inondee) {
+			cellules[joueurs[tour].x][joueurs[tour].y].etat = etat.normale;
+    		joueurs[tour].nbActions+=1;
+		}
+    	if (joueurs[tour].nbActions == 3) {
+    		avance();
+    		joueurs[tour].nbActions = 0;
+    	}
+	    	notifyObservers();
+	   
+    }
+    
 
 
     /**
@@ -440,13 +469,29 @@ class VueCommandes extends JPanel {
 		 * texte qui doit l'étiqueter.
 		 * Puis on ajoute ce bouton au panneau [this].
 		 */
-		JButton boutonAvance = new JButton("prochain tour");
-		this.add(boutonAvance);
+		JButton AssecheHaut = new JButton("^");
+		JButton AssecheBas = new JButton("v");
+		JButton Asseche = new JButton("o");
+		JButton AssecheGauche = new JButton("<");
+		JButton AssecheDroite = new JButton(">");
+		this.add(AssecheHaut);
+		this.add(AssecheBas);
+		this.add(Asseche);
+		this.add(AssecheGauche);
+		this.add(AssecheDroite);
+		JButton osef = new JButton("t");
 		Controleur ctrl = new Controleur(modele);
-		Controleur2 ctrl2 = new Controleur2(modele);
 		/** Enregistrement du contrôleur comme auditeur du bouton. */
-		boutonAvance.addKeyListener(ctrl);
-		boutonAvance.addActionListener(ctrl2);
+		AssecheHaut.addActionListener(ctrl);
+		AssecheBas.addActionListener(ctrl);
+		Asseche.addActionListener(ctrl);
+		AssecheGauche.addActionListener(ctrl);
+		AssecheDroite.addActionListener(ctrl);
+		AssecheHaut.addKeyListener(ctrl);
+		AssecheDroite.addKeyListener(ctrl);
+		AssecheBas.addKeyListener(ctrl);
+		Asseche.addKeyListener(ctrl);
+		AssecheGauche.addKeyListener(ctrl);
 		
 		/**
 		 * Variante : une lambda-expression qui évite de créer une classe
@@ -469,7 +514,7 @@ class VueCommandes extends JPanel {
  * uniquement de fournir une méthode [actionPerformed] indiquant la
  * réponse du contrôleur à la réception d'un événement.
  */
-class Controleur implements KeyListener {
+class Controleur implements ActionListener, KeyListener {
     /**
      * On garde un pointeur vers le modèle, car le contrôleur doit
      * provoquer un appel de méthode du modèle.
@@ -480,18 +525,7 @@ class Controleur implements KeyListener {
      */
     CModele modele;
     public Controleur(CModele modele) { this.modele = modele; }
-    /**
-     * Action effectuée à réception d'un événement : appeler la
-     * méthode [avance] du modèle.
-     */
-    public void actionPerformed(ActionEvent e) {
-    	if (e.getActionCommand() == "prochain tour") modele.avance();
-    	else if (e.getActionCommand() == "^") modele.deplace(KeyEvent.VK_UP);
-    	else if (e.getActionCommand() == "v") modele.deplace(KeyEvent.VK_DOWN);
-    	else if (e.getActionCommand() == ">") modele.deplace(KeyEvent.VK_RIGHT);
-    	else if (e.getActionCommand() == "<") modele.deplace(KeyEvent.VK_LEFT);
-    }
-    
+
     public void keyPressed(KeyEvent e) {
 		int keyCode = e.getKeyCode();
 		switch (keyCode) {
@@ -522,32 +556,29 @@ class Controleur implements KeyListener {
 		// TODO Auto-generated method stub
 		
 	}
-}
 
-
-
-class Controleur2 implements ActionListener {
-    /**
-     * On garde un pointeur vers le modèle, car le contrôleur doit
-     * provoquer un appel de méthode du modèle.
-     * Remarque : comme cette classe est interne, cette inscription
-     * explicite du modèle est inutile. On pourrait se contenter de
-     * faire directement référence au modèle enregistré pour la classe
-     * englobante [VueCommandes].
-     */
-    CModele modele;
-    public Controleur2(CModele modele) { this.modele = modele; }
-    /**
-     * Action effectuée à réception d'un événement : appeler la
-     * méthode [avance] du modèle.
-     */
-    public void actionPerformed(ActionEvent e) {
-    	if (e.getActionCommand() == "prochain tour") modele.avance();
-    	else if (e.getActionCommand() == "^") modele.deplace(KeyEvent.VK_UP);
-    	else if (e.getActionCommand() == "v") modele.deplace(KeyEvent.VK_DOWN);
-    	else if (e.getActionCommand() == ">") modele.deplace(KeyEvent.VK_RIGHT);
-    	else if (e.getActionCommand() == "<") modele.deplace(KeyEvent.VK_LEFT);
-    }
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		String actionCode = e.getActionCommand();
+		switch (actionCode) {
+		case "^":
+			modele.asseche(KeyEvent.VK_UP);
+			break;
+		case "v":
+			modele.asseche(KeyEvent.VK_DOWN);
+			break;
+		case ">":
+			modele.asseche(KeyEvent.VK_RIGHT);
+			break;
+		case "<":
+			modele.asseche(KeyEvent.VK_LEFT);
+			break;
+		case "o":
+			modele.asseche(KeyEvent.VK_ENTER);
+			break;
+		}
+		
+	}
 }
 
 /** Fin du contrôleur. */
