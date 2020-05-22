@@ -298,6 +298,10 @@ class Cellule {
 /** Fin de la classe Cellule, et du modèle en général. */
 
 class Joueur{
+	public int cleEau;
+	public int cleFeu;
+	public int cleAir;
+	public int cleTerre;
 	public int x, y;
 	public int nbActions;
 	
@@ -312,6 +316,10 @@ class Joueur{
 		this.x = x;
 		this.y = y;
 		this.nbActions = 0;
+		cleEau = 0;
+		cleFeu = 0;
+		cleTerre = 0;
+		cleAir = 0;
 	}
 }  
 
@@ -352,7 +360,7 @@ class CVue {
   	//commandes1 = new VueCommandes(modele);
   	JPanel player = new JPanel();
   	player.setLayout(new BoxLayout(player, BoxLayout.LINE_AXIS));
-  	player.add(new JLabel(" Nombre de joueurs: " + modele.getJoueurs().length + "\n" + "Au tour du joueur: " + modele.getTour() + "  nombre d'actions restantes: " + actions));
+  	player.add(new JLabel(" Nombre de joueurs: " + modele.getJoueurs().length + " Au tour du joueur: " + modele.getTour() + "  nombre d'actions restantes: " + actions));
   	//frame1.add(commandes1);
     
     
