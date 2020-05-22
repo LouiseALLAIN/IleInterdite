@@ -759,14 +759,20 @@ class CVueMenu {
 	/** Définition de la fenêtre principale. */
     resultat = 0;
 	frame = new JFrame();
+	frame.setLayout(new BorderLayout());
 	frame.setTitle("Menu");
 	JPanel text = new JPanel();
-	text.setLayout(new BoxLayout(text, BoxLayout.X_AXIS));
-	JLabel test = new JLabel("Combien d'aventuriers partiront en expédition ?");
-	frame.add(test);
-    test.setLocation(frame.getHeight()/2, frame.getWidth()/2);
-    JPanel bouton = new JPanel();
     
+    JPanel bouton = new JPanel();
+  
+    ImageIcon icone = new ImageIcon("619.png");;
+    
+    Image image = icone.getImage();
+    Image newimg = image.getScaledInstance(600, 350,  java.awt.Image.SCALE_SMOOTH);
+    icone = new ImageIcon(newimg);
+    JLabel img = new JLabel(icone, JLabel.CENTER);
+    
+    frame.add(img, BorderLayout.PAGE_START);
     
     /**
 	 * On précise un mode pour disposer les différents éléments à
@@ -783,7 +789,7 @@ class CVueMenu {
 	 *    même dimension. Cette dimension est calculée en fonction du
 	 *    nombre de cases à placer et de la dimension du contenant.
 	 */
-	frame.setLayout(new FlowLayout());
+	
 	//frame.setLayout(new BorderLayout());
 
 
@@ -791,14 +797,13 @@ class CVueMenu {
 	VueMenu menu = new VueMenu();
 	frame.add(menu);
 	VueCommandesMenu commandes = new VueCommandesMenu();
-	//bouton.setLayout(new BoxLayout(bouton, BoxLayout.LINE_AXIS));
 	bouton.setLocation(frame.getHeight()/2, frame.getWidth()/2);
 	bouton.add(commandes);
 
     JPanel position = new JPanel();
-    position.add(text);
+    position.add(text, BorderLayout.CENTER);
     position.add(bouton);
-    frame.add(position);
+    frame.add(position, BorderLayout.CENTER);
 	
 	/**
 	 * Remarque : on peut passer à la méthode [add] des paramètres
@@ -891,16 +896,22 @@ class VueCommandesMenu extends JPanel {
 		 * texte qui doit l'étiqueter.
 		 * Puis on ajoute ce bouton au panneau [this].
 		 */
+        JPanel boutons = new JPanel();
+    	boutons.setLayout(new BoxLayout(boutons, BoxLayout.LINE_AXIS));
+        boutons.add(new JLabel("Combien d'aventuriers partiront en expédition? "));
+        JPanel bouton = new JPanel();
+    	
 		JButton deuxJoueurs = new JButton("2");
 		deuxJoueurs.setLocation(this.getHeight()/2, this.getWidth()/2);
-		this.add(deuxJoueurs);
+		boutons.add(deuxJoueurs);
 		JButton troisJoueurs = new JButton("3");
 		troisJoueurs.setLocation(this.getHeight()/2, this.getWidth()/2);
-		this.add(troisJoueurs);
+		boutons.add(troisJoueurs);
 		JButton quatreJoueurs = new JButton("4");
 		quatreJoueurs.setLocation(this.getHeight()/2, this.getWidth()/2);
-		this.add(quatreJoueurs);
+		boutons.add(quatreJoueurs);
 		
+		this.add(boutons, BorderLayout.NORTH);
 		ControleurMenu ctrlM = new ControleurMenu();
 		/** Enregistrement du contrôleur comme auditeur du bouton. */
 		deuxJoueurs.addActionListener(ctrlM);
