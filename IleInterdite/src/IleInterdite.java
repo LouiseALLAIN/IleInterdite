@@ -70,19 +70,19 @@ public class IleInterdite {
 	 * Pour les besoins du jour on considère la ligne EvenQueue... comme une
 	 * incantation qu'on pourra expliquer plus tard.
 	 */
-	EventQueue.invokeLater(() -> {
-		/** Voici le contenu qui nous intéresse. */
-				System.out.println("Combien de joueurs souhaitez vous ? (Entre 2 et 4)");
-				int nb;
-				try {
-					nb = System.in.read() - 48;
-				} catch (IOException e) {
-					nb = 2;
-					e.printStackTrace();
-				}
-                CModele modele = new CModele(nb);
-                CVue vue = new CVue(modele);
-	    });
+    	EventQueue.invokeLater(() -> {
+    		/** Voici le contenu qui nous intéresse. */
+    				
+    				CVueMenu vueMenu = new CVueMenu();
+    				/**while(true) {
+    					if(vueMenu.resultat != 0) {
+    						CModele modele = new CModele(vueMenu.resultat);
+    						CVue vue = new CVue(modele); 
+    						break;
+    					}
+    					
+    				}*/
+    	    });
     }
 }
 /** Fin de la classe principale. */
@@ -104,6 +104,7 @@ class CModele extends Observable {
     public int nbJoueurs;
     private Joueur[] joueurs;
     private int tour;
+    int[] artefacts = new int[4];
 
     public Joueur[] getJoueurs() {
 		return joueurs;
@@ -119,6 +120,9 @@ class CModele extends Observable {
 	 * Pour éviter les problèmes aux bords, on ajoute une ligne et une
 	 * colonne de chaque côté, dont les cellules n'évolueront pas.
 	 */ 
+    	for (int i = 0; i < 4; i++) {
+    		artefacts[i] = -1;
+    	}
     	this.nbJoueurs = nbJoueurs;
     	joueurs = new Joueur[nbJoueurs];
     	int x = (int)(Math.random() * LARGEUR + 1);
@@ -126,7 +130,7 @@ class CModele extends Observable {
     	for (int i = 0; i < nbJoueurs; i++) {
     		joueurs[i] = new Joueur(x, y);
     	}
-	    tour = 1;
+	    tour = 0;
 		cellules = new Cellule[LARGEUR+2][HAUTEUR+2];
 		for(int i=0; i<LARGEUR+2; i++) {
 		    for(int j=0; j<HAUTEUR+2; j++) {
@@ -212,6 +216,7 @@ class CModele extends Observable {
 			else joueurs[tour].cleTerre +=1;
 		}
 		tour=(tour+1)%nbJoueurs;
+		joueurs[tour].nbActions = 0;
 		/**
 		 * Pour finir, le modèle ayant changé, on signale aux observateurs
 		 * qu'ils doivent se mettre à jour.
@@ -231,7 +236,6 @@ class CModele extends Observable {
 	    }
     	if (joueurs[tour].nbActions == 3) {
     		avance();
-    		joueurs[tour].nbActions = 0;
     	}
 	    	notifyObservers();
     }
@@ -259,7 +263,6 @@ class CModele extends Observable {
 		}
     	if (joueurs[tour].nbActions == 3) {
     		avance();
-    		joueurs[tour].nbActions = 0;
     	}
 	    	notifyObservers();
 	   
@@ -270,26 +273,40 @@ class CModele extends Observable {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleEau = 0;
     		joueurs[tour].nbActions++;
+    		artefacts[0] = tour+1;
     	}
     	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.air && joueurs[tour].cleAir > 0) {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleAir = 0;
     		joueurs[tour].nbActions++;
+    		artefacts[1] = tour+1;
     	}
     	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.feu && joueurs[tour].cleFeu > 0) {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleFeu = 0;
     		joueurs[tour].nbActions++;
+    		artefacts[2] = tour+1;
     	}
     	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.terre && joueurs[tour].cleTerre > 0) {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleTerre = 0;
     		joueurs[tour].nbActions++;
+    		artefacts[3] = tour+1;
     	}
     	if (joueurs[tour].nbActions == 3) {
     		avance();
-    		joueurs[tour].nbActions = 0;
     	}
+    	notifyObservers();
+    }
+    
+    public boolean victoire() {
+    	for(int i = 0; i < 4; i++) {
+    		if(artefacts[i] == -1) return false;
+    	}
+    	for (int i = 0; i < nbJoueurs; i++) {
+    		if(cellules[joueurs[i].x][joueurs[i].y].type != elements.heliport) return false;
+    	}
+    	return true;
     }
     
 
@@ -413,7 +430,7 @@ class CVue {
 	grille = new VueGrille(modele);
 	frame.add(grille);
 	commandes = new VueCommandes(modele);
-	bouton.setLayout(new BoxLayout(bouton, BoxLayout.LINE_AXIS));
+	bouton.setLayout(new BoxLayout(bouton, BoxLayout.PAGE_AXIS));
 	bouton.add(commandes);
 
     JPanel position = new JPanel();
@@ -451,7 +468,7 @@ class VueGrille extends JPanel implements Observer {
     private CModele modele;
     /** Définition d'une taille (en pixels) pour l'affichage des cellules. */
     private final static int TAILLE = 40;
-
+    JLabel fin = new JLabel(" ");
     /** Constructeur. */
     public VueGrille(CModele modele) {
 	this.modele = modele;
@@ -465,6 +482,7 @@ class VueGrille extends JPanel implements Observer {
 	Dimension dim = new Dimension(TAILLE*CModele.LARGEUR,
 				      TAILLE*CModele.HAUTEUR);
 	this.setPreferredSize(dim);
+	this.add(fin);
     }
 
     /**
@@ -478,21 +496,34 @@ class VueGrille extends JPanel implements Observer {
     public void paintComponent(Graphics g) {
 	super.repaint();
 	/** Pour chaque cellule... */
-	for(int i=1; i<=CModele.LARGEUR; i++) {
-	    for(int j=1; j<=CModele.HAUTEUR; j++) {
-		/**
-		 * ... Appeler une fonction d'affichage auxiliaire.
-		 * On lui fournit les informations de dessin [g] et les
-		 * coordonnées du coin en haut à gauche.
-		 */
-		paint(g, modele.getCellule(i, j), (i-1)*TAILLE, (j-1)*TAILLE);
-	    }
+	if(!modele.victoire()) {
+		for(int i=1; i<=CModele.LARGEUR; i++) {
+		    for(int j=1; j<=CModele.HAUTEUR; j++) {
+			/**
+			 * ... Appeler une fonction d'affichage auxiliaire.
+			 * On lui fournit les informations de dessin [g] et les
+			 * coordonnées du coin en haut à gauche.
+			 */
+			paint(g, modele.getCellule(i, j), (i-1)*TAILLE, (j-1)*TAILLE);
+		    }
+		}
+	}else {
+		this.removeAll();
+		g.setColor(Color.WHITE);
+		g.fillRect(0,  0,  TAILLE*CModele.LARGEUR,
+				      TAILLE*CModele.HAUTEUR);
+		fin.setLayout(new BoxLayout(fin, BoxLayout.X_AXIS));
+		fin = new JLabel("VICTOIRE");
+		Font font = new Font("Arial", Font.BOLD, 96);
+		fin.setFont(font);
+		this.add(fin);
+		this.validate();
 	}
     }
     /**
      * Fonction auxiliaire de dessin d'une cellule.
      * Ici, la classe [Cellule] ne peut être désignée que par l'intermédiaire
-     * de la classe [CModele] à laquelle elle est interne, d'où le type
+     * de la classe [CModele] à laquelle elle est interne, d'où type
      * [CModele.Cellule].
      * Ceci serait impossible si [Cellule] était déclarée privée dans [CModele].
      */
@@ -520,21 +551,52 @@ class VuePlayer extends JPanel implements Observer {
 
     private CModele modele;
     private JLabel value;
+    JLabel value0 = new JLabel(" ");
+  	JLabel value1 = new JLabel(" ");
+  	JLabel value2 = new JLabel(" ");
+  	JLabel value3 = new JLabel(" ");
     public VuePlayer(CModele modele) {
 	this.modele = modele;
 	modele.addObserver(this);
   	int actions = modele.getJoueurs()[modele.getTour()].nbActions;  //actions
-  	value = new JLabel(" Nombre de joueurs: " + modele.getJoueurs().length + " Au tour du joueur: " + modele.getTour() + "  nombre d'actions utilisées: " + actions);
-  	this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-  	this.add(value);
+  	this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+  	this.add(new JLabel("Nombre de joueurs: " + modele.getJoueurs().length));
+  	this.add(new JLabel("Au tour du joueur: " + (modele.getTour()+1)));
+  	this.add(new JLabel("Nombre d'actions restantes: " + (3-actions)));
+  	for (int i = 0; i < modele.nbJoueurs; i++) {
+  		this.add(new JLabel("Joueur " + (i+1) + " : " + 
+  				modele.getJoueurs()[i].cleEau + " Clés eau, " + 
+  				modele.getJoueurs()[i].cleAir + " Clés air, " + 
+  				modele.getJoueurs()[i].cleFeu + " Clés feu, " + 
+  				modele.getJoueurs()[i].cleTerre + " Clés terre" ));
+  	}
+  	this.add(value0);
+  	this.add(value1);
+  	this.add(value2);
+  	this.add(value3);
     }
 
     public void update() { 
-    	this.remove(value);
-        int actions = modele.getJoueurs()[modele.getTour()].nbActions;  //actions
-        this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-        value = new JLabel(" Nombre de joueurs: " + modele.getJoueurs().length + " Au tour du joueur: " + modele.getTour() + "  nombre d'actions utilisées: " + actions);
-        this.add(value);
+    	this.removeAll();
+    	int actions = modele.getJoueurs()[modele.getTour()].nbActions;  //actions
+    	this.add(new JLabel("Nombre de joueurs: " + modele.getJoueurs().length));
+      	this.add(new JLabel("Au tour du joueur: " + (modele.getTour()+1)));
+      	this.add(new JLabel("Nombre d'actions restantes: " + (3-actions)));
+      	for (int i = 0; i < modele.nbJoueurs; i++) {
+      		this.add(new JLabel("Joueur " + (i+1) + " : " + 
+      				modele.getJoueurs()[i].cleEau + " Clés eau, " + 
+      				modele.getJoueurs()[i].cleAir + " Clés air, " + 
+      				modele.getJoueurs()[i].cleFeu + " Clés feu, " + 
+      				modele.getJoueurs()[i].cleTerre + " Clés terre" ));
+      	}
+      	if(modele.artefacts[0] != -1) value0 = new JLabel("Artéfact d'eau possédé par Joueur " + modele.artefacts[0]);
+      	if(modele.artefacts[1] != -1) value1 = new JLabel("Artéfact d'air possédé par Joueur " + modele.artefacts[1]);
+      	if(modele.artefacts[2] != -1) value2 = new JLabel("Artéfact de feu possédé par Joueur " + modele.artefacts[2]);
+      	if(modele.artefacts[3] != -1) value3 = new JLabel("Artéfact de terre possédé par Joueur " + modele.artefacts[3]);
+      	this.add(value0);
+      	this.add(value1);
+      	this.add(value2);
+      	this.add(value3);
         this.validate();
     	this.repaint(); }
 }
@@ -618,6 +680,7 @@ class Controleur implements ActionListener, KeyListener {
     public Controleur(CModele modele) { this.modele = modele; }
 
     public void keyPressed(KeyEvent e) {
+    	if (modele.victoire()) return;
 		int keyCode = e.getKeyCode();
 		switch (keyCode) {
 		case KeyEvent.VK_UP:
@@ -635,6 +698,9 @@ class Controleur implements ActionListener, KeyListener {
 		case KeyEvent.VK_ENTER:
 			modele.avance();
 			break;
+		case KeyEvent.VK_SPACE:
+			modele.recupere();
+			break;
 		}
 	}
 	@Override
@@ -650,6 +716,7 @@ class Controleur implements ActionListener, KeyListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		if (modele.victoire()) return;
 		String actionCode = e.getActionCommand();
 		switch (actionCode) {
 		case "⬆":
@@ -666,6 +733,217 @@ class Controleur implements ActionListener, KeyListener {
 			break;
 		case "⚫":
 			modele.asseche(KeyEvent.VK_ENTER);
+			break;
+		}
+		
+	}
+}
+
+/** Fin du contrôleur. */
+
+class CVueMenu {
+    public static int resultat;
+	/**
+     * JFrame est une classe fournie pas Swing. Elle représente la fenêtre
+     * de l'application graphique.
+     */
+    private JFrame frame;
+    /**
+     * VueGrille et VueCommandes sont deux classes définies plus loin, pour
+     * nos deux parties de l'interface graphique.
+     */
+    private VueMenu grille;
+    private VueCommandesMenu commandes;
+    /** Construction d'une vue attachée à un modèle. */
+    public CVueMenu() {
+	/** Définition de la fenêtre principale. */
+    resultat = 0;
+	frame = new JFrame();
+	frame.setTitle("Menu");
+	JPanel text = new JPanel();
+	text.setLayout(new BoxLayout(text, BoxLayout.X_AXIS));
+	JLabel test = new JLabel("Combien d'aventuriers partiront en expédition ?");
+	frame.add(test);
+    test.setLocation(frame.getHeight()/2, frame.getWidth()/2);
+    JPanel bouton = new JPanel();
+    
+    
+    /**
+	 * On précise un mode pour disposer les différents éléments à
+	 * l'intérieur de la fenêtre. Quelques possibilités sont :
+	 *  - BorderLayout (défaut pour la classe JFrame) : chaque élément est
+	 *    disposé au centre ou le long d'un bord.
+	 *  - FlowLayout (défaut pour un JPanel) : les éléments sont disposés
+	 *    l'un à la suite de l'autre, dans l'ordre de leur ajout, les lignes
+	 *    se formant de gauche à droite et de haut en bas. Un élément peut
+	 *    passer à la ligne lorsque l'on redimensionne la fenêtre.
+	 *  - GridLayout : les éléments sont disposés l'un à la suite de
+	 *    l'autre sur une grille avec un nombre de lignes et un nombre de
+	 *    colonnes définis par le programmeur, dont toutes les cases ont la
+	 *    même dimension. Cette dimension est calculée en fonction du
+	 *    nombre de cases à placer et de la dimension du contenant.
+	 */
+	frame.setLayout(new FlowLayout());
+	//frame.setLayout(new BorderLayout());
+
+
+	/** Définition des deux vues et ajout à la fenêtre. */
+	VueMenu menu = new VueMenu();
+	frame.add(menu);
+	VueCommandesMenu commandes = new VueCommandesMenu();
+	//bouton.setLayout(new BoxLayout(bouton, BoxLayout.LINE_AXIS));
+	bouton.setLocation(frame.getHeight()/2, frame.getWidth()/2);
+	bouton.add(commandes);
+
+    JPanel position = new JPanel();
+    position.add(text);
+    position.add(bouton);
+    frame.add(position);
+	
+	/**
+	 * Remarque : on peut passer à la méthode [add] des paramètres
+	 * supplémentaires indiquant où placer l'élément. Par exemple, si on
+	 * avait conservé la disposition par défaut [BorderLayout], on aurait
+	 * pu écrire le code suivant pour placer la grille à gauche et les
+	 * commandes à droite.
+	 *     frame.add(grille, BorderLayout.WEST);
+	 *     frame.add(commandes, BorderLayout.EAST);
+	 */
+
+	/**
+	 * Fin de la plomberie :
+	 *  - Ajustement de la taille de la fenêtre en fonction du contenu.
+	 *  - Indiquer qu'on quitte l'application si la fenêtre est fermée.
+	 *  - Préciser que la fenêtre doit bien apparaître à l'écran.
+	 */
+	frame.pack();
+	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	frame.setVisible(true);
+	if(resultat != 0) {
+		frame.dispose();
+	}
+    }
+}
+
+
+
+
+
+
+class VueMenu extends JPanel implements Observer {
+    /** On maintient une référence vers le modèle. */
+    /** Définition d'une taille (en pixels) pour l'affichage des cellules. */
+    private final static int TAILLE = 20;
+
+    /** Constructeur. */
+    public VueMenu() {
+	/**
+	 * Définition et application d'une taille fixe pour cette zone de
+	 * l'interface, calculée en fonction du nombre de cellules et de la
+	 * taille d'affichage.
+	 */
+	Dimension dim = new Dimension(TAILLE*CModele.LARGEUR,
+				      TAILLE*CModele.HAUTEUR);
+	this.setPreferredSize(dim);
+    }
+
+    /**
+     * L'interface [Observer] demande de fournir une méthode [update], qui
+     * sera appelée lorsque la vue sera notifiée d'un changement dans le
+     * modèle. Ici on se content de réafficher toute la grille avec la méthode
+     * prédéfinie [repaint].
+     */
+    public void update() { repaint(); }
+
+    /**
+     * Les éléments graphiques comme [JPanel] possèdent une méthode
+     * [paintComponent] qui définit l'action à accomplir pour afficher cet
+     * élément. On la redéfinit ici pour lui confier l'affichage des cellules.
+     *
+     * La classe [Graphics] regroupe les éléments de style sur le dessin,
+     * comme la couleur actuelle.
+     */
+    /**
+     * Fonction auxiliaire de dessin d'une cellule.
+     * Ici, la classe [Cellule] ne peut être désignée que par l'intermédiaire
+     * de la classe [CModele] à laquelle elle est interne, d'où le type
+     * [CModele.Cellule].
+     * Ceci serait impossible si [Cellule] était déclarée privée dans [CModele].
+     */
+        /** Coloration d'un rectangle. */
+    
+}
+
+
+
+
+
+
+class VueCommandesMenu extends JPanel {
+    /**
+     * Pour que le bouton puisse transmettre ses ordres, on garde une
+     * référence au modèle.
+     */
+    /** Constructeur. */
+    public VueCommandesMenu() {
+		/**
+		 * On crée un nouveau bouton, de classe [JButton], en précisant le
+		 * texte qui doit l'étiqueter.
+		 * Puis on ajoute ce bouton au panneau [this].
+		 */
+		JButton deuxJoueurs = new JButton("2");
+		deuxJoueurs.setLocation(this.getHeight()/2, this.getWidth()/2);
+		this.add(deuxJoueurs);
+		JButton troisJoueurs = new JButton("3");
+		troisJoueurs.setLocation(this.getHeight()/2, this.getWidth()/2);
+		this.add(troisJoueurs);
+		JButton quatreJoueurs = new JButton("4");
+		quatreJoueurs.setLocation(this.getHeight()/2, this.getWidth()/2);
+		this.add(quatreJoueurs);
+		
+		ControleurMenu ctrlM = new ControleurMenu();
+		/** Enregistrement du contrôleur comme auditeur du bouton. */
+		deuxJoueurs.addActionListener(ctrlM);
+		troisJoueurs.addActionListener(ctrlM);
+		quatreJoueurs.addActionListener(ctrlM);
+		
+	
+    }
+}
+
+
+
+
+
+
+class ControleurMenu implements ActionListener{
+    /**
+     * On garde un pointeur vers le modèle, car le contrôleur doit
+     * provoquer un appel de méthode du modèle.
+     * Remarque : comme cette classe est interne, cette inscription
+     * explicite du modèle est inutile. On pourrait se contenter de
+     * faire directement référence au modèle enregistré pour la classe
+     * englobante [VueCommandes].
+     */
+    public ControleurMenu() { }
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		String actionCode = e.getActionCommand();
+		switch (actionCode) {
+		case "2":
+			CVueMenu.resultat = 2;
+			CModele modele2 = new CModele(2);
+			CVue vue2 = new CVue(modele2); 
+			break;
+		case "3":
+			CVueMenu.resultat = 3;
+			CModele modele3 = new CModele(3);
+			CVue vue3 = new CVue(modele3);
+			break;
+		case "4":
+			CVueMenu.resultat = 4;
+			CModele modele4 = new CModele(4);
+			CVue vue4 = new CVue(modele4);
 			break;
 		}
 		
