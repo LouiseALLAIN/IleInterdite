@@ -344,6 +344,16 @@ class CVue {
 	text.setLayout(new BoxLayout(text, BoxLayout.LINE_AXIS));
     text.add(new JLabel("Cliquer pour assécher une zone inondée"));
     JPanel bouton = new JPanel();
+    //System.out.println(modele.getJoueurs()); // nombre de joueurs
+  	//System.out.println(modele.getTour());  //au tour de J1
+  	int actions = modele.getJoueurs()[modele.getTour()].nbActions;  //actions
+  	//System.out.println(actions);
+    //VueCommandes commandes1;
+  	//commandes1 = new VueCommandes(modele);
+  	JPanel player = new JPanel();
+  	player.setLayout(new BoxLayout(player, BoxLayout.LINE_AXIS));
+  	player.add(new JLabel(" Nombre de joueurs: " + modele.getJoueurs().length + "\n" + "Au tour du joueur: " + modele.getTour() + "  nombre d'actions restantes: " + actions));
+  	//frame1.add(commandes1);
     
     
     /**
@@ -376,6 +386,7 @@ class CVue {
     position.setLayout(new BoxLayout(position, BoxLayout.PAGE_AXIS));
     position.add(text);
     position.add(bouton);
+    position.add(player);
     frame.add(position);
 	
 	/**
@@ -543,23 +554,6 @@ class VueCommandes extends JPanel {
 	         boutonAvance.addActionListener(e -> { modele.avance(); });
 	         *
 	         */
-		
-		//System.out.println(modele.getJoueurs()); // nombre de joueurs
-		//System.out.println(modele.getTour());  //au tour de J1
-		int actions = modele.getJoueurs()[modele.getTour()].nbActions;  //actions
-		//System.out.println(actions);
-	    //VueCommandes commandes1;
-		//commandes1 = new VueCommandes(modele);
-		JPanel player = new JPanel();
-		player.setLayout(new FlowLayout());
-		player.add(new JLabel(" Nombre de joueurs: " + modele.getJoueurs().length + " Au tour du joueur: " + modele.getTour() + "  nombre d'actions restantes: " + actions));
-		JFrame frame1 = new JFrame();
-		//frame1.add(commandes1);
-		frame1 = new JFrame();
-		frame1.add(player);
-		frame1.pack();
-		frame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame1.setVisible(true);
 	
     }
 }
