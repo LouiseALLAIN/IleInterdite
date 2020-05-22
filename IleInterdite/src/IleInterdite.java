@@ -1,7 +1,10 @@
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
+
 import javax.swing.*;
+
 
 /**
  * Interface des objets observateurs.
@@ -69,7 +72,15 @@ public class IleInterdite {
 	 */
 	EventQueue.invokeLater(() -> {
 		/** Voici le contenu qui nous intéresse. */
-                CModele modele = new CModele();
+				System.out.println("Combien de joueurs souhaitez vous ? (Entre 2 et 4)");
+				int nb;
+				try {
+					nb = System.in.read() - 48;
+				} catch (IOException e) {
+					nb = 2;
+					e.printStackTrace();
+				}
+                CModele modele = new CModele(nb);
                 CVue vue = new CVue(modele);
 	    });
     }
@@ -90,16 +101,26 @@ class CModele extends Observable {
     public static final int HAUTEUR=10, LARGEUR=15;
     /** On stocke un tableau de cellules. */
     private Cellule[][] cellules;
-    int nbJoueurs = 2;
-    Joueur[] joueurs = new Joueur[nbJoueurs];
-    int tour;
+    public int nbJoueurs;
+    private Joueur[] joueurs;
+    private int tour;
 
-    /** Construction : on initialise un tableau de cellules. */
-    public CModele() {
+    public Joueur[] getJoueurs() {
+		return joueurs;
+	}
+
+	public int getTour() {
+		return tour;
+	}
+
+	/** Construction : on initialise un tableau de cellules. **/
+    public CModele(int nbJoueurs) {
 	/**
 	 * Pour éviter les problèmes aux bords, on ajoute une ligne et une
 	 * colonne de chaque côté, dont les cellules n'évolueront pas.
 	 */ 
+    	this.nbJoueurs = nbJoueurs;
+    	joueurs = new Joueur[nbJoueurs];
     	int x = (int)(Math.random() * LARGEUR + 1);
     	int y = (int)(Math.random() * HAUTEUR + 1);
     	for (int i = 0; i < nbJoueurs; i++) {
@@ -221,7 +242,7 @@ class CModele extends Observable {
     		joueurs[tour].nbActions+=1;
 		}
 		else if (k == KeyEvent.VK_DOWN && cellules[joueurs[tour].x][joueurs[tour].y+1].etat == etat.inondee && joueurs[tour].y+1 <= HAUTEUR) {
-			cellules[joueurs[tour].x+1][joueurs[tour].y+1].etat = etat.normale;
+			cellules[joueurs[tour].x][joueurs[tour].y+1].etat = etat.normale;
     		joueurs[tour].nbActions+=1;
 		}
 		else if (k == KeyEvent.VK_ENTER && cellules[joueurs[tour].x][joueurs[tour].y].etat == etat.inondee) {
@@ -279,6 +300,11 @@ class Cellule {
 class Joueur{
 	public int x, y;
 	public int nbActions;
+	
+	public int getNbActions() {
+		return nbActions;
+	}
+
 	private CModele modele;
 	
 	public Joueur(int x, int y) {
@@ -309,13 +335,18 @@ class CVue {
      */
     private VueGrille grille;
     private VueCommandes commandes;
-
     /** Construction d'une vue attachée à un modèle. */
     public CVue(CModele modele) {
 	/** Définition de la fenêtre principale. */
 	frame = new JFrame();
-	frame.setTitle("Jeu de la vie de Conway");
-	/**
+	frame.setTitle("🏝️ L'île interdite ☠️");
+	JPanel text = new JPanel();
+	text.setLayout(new BoxLayout(text, BoxLayout.LINE_AXIS));
+    text.add(new JLabel("Cliquer pour assécher une zone inondée"));
+    JPanel bouton = new JPanel();
+    
+    
+    /**
 	 * On précise un mode pour disposer les différents éléments à
 	 * l'intérieur de la fenêtre. Quelques possibilités sont :
 	 *  - BorderLayout (défaut pour la classe JFrame) : chaque élément est
@@ -331,12 +362,22 @@ class CVue {
 	 *    nombre de cases à placer et de la dimension du contenant.
 	 */
 	frame.setLayout(new FlowLayout());
+	//frame.setLayout(new BorderLayout());
+
 
 	/** Définition des deux vues et ajout à la fenêtre. */
 	grille = new VueGrille(modele);
 	frame.add(grille);
 	commandes = new VueCommandes(modele);
-	frame.add(commandes);
+	bouton.setLayout(new BoxLayout(bouton, BoxLayout.LINE_AXIS));
+	bouton.add(commandes);
+
+    JPanel position = new JPanel();
+    position.setLayout(new BoxLayout(position, BoxLayout.PAGE_AXIS));
+    position.add(text);
+    position.add(bouton);
+    frame.add(position);
+	
 	/**
 	 * Remarque : on peut passer à la méthode [add] des paramètres
 	 * supplémentaires indiquant où placer l'élément. Par exemple, si on
@@ -460,7 +501,7 @@ class VueCommandes extends JPanel {
      * référence au modèle.
      */
     private CModele modele;
-
+    
     /** Constructeur. */
     public VueCommandes(CModele modele) {
 		this.modele = modele;
@@ -469,11 +510,11 @@ class VueCommandes extends JPanel {
 		 * texte qui doit l'étiqueter.
 		 * Puis on ajoute ce bouton au panneau [this].
 		 */
-		JButton AssecheHaut = new JButton("^");
-		JButton AssecheBas = new JButton("v");
-		JButton Asseche = new JButton("o");
-		JButton AssecheGauche = new JButton("<");
-		JButton AssecheDroite = new JButton(">");
+		JButton AssecheHaut = new JButton("⬆");
+		JButton AssecheBas = new JButton("⬇");
+		JButton Asseche = new JButton("⚫");
+		JButton AssecheGauche = new JButton("⬅");
+		JButton AssecheDroite = new JButton("➡"); 
 		this.add(AssecheHaut);
 		this.add(AssecheBas);
 		this.add(Asseche);
@@ -502,7 +543,24 @@ class VueCommandes extends JPanel {
 	         boutonAvance.addActionListener(e -> { modele.avance(); });
 	         *
 	         */
-
+		
+		//System.out.println(modele.getJoueurs()); // nombre de joueurs
+		//System.out.println(modele.getTour());  //au tour de J1
+		int actions = modele.getJoueurs()[modele.getTour()].nbActions;  //actions
+		//System.out.println(actions);
+	    //VueCommandes commandes1;
+		//commandes1 = new VueCommandes(modele);
+		JPanel player = new JPanel();
+		player.setLayout(new FlowLayout());
+		player.add(new JLabel(" Nombre de joueurs: " + modele.getJoueurs().length + " Au tour du joueur: " + modele.getTour() + "  nombre d'actions restantes: " + actions));
+		JFrame frame1 = new JFrame();
+		//frame1.add(commandes1);
+		frame1 = new JFrame();
+		frame1.add(player);
+		frame1.pack();
+		frame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame1.setVisible(true);
+	
     }
 }
 /** Fin de la vue. */
@@ -561,19 +619,19 @@ class Controleur implements ActionListener, KeyListener {
 	public void actionPerformed(ActionEvent e) {
 		String actionCode = e.getActionCommand();
 		switch (actionCode) {
-		case "^":
+		case "⬆":
 			modele.asseche(KeyEvent.VK_UP);
 			break;
-		case "v":
+		case "⬇":
 			modele.asseche(KeyEvent.VK_DOWN);
 			break;
-		case ">":
+		case "➡":
 			modele.asseche(KeyEvent.VK_RIGHT);
 			break;
-		case "<":
+		case "⬅":
 			modele.asseche(KeyEvent.VK_LEFT);
 			break;
-		case "o":
+		case "⚫":
 			modele.asseche(KeyEvent.VK_ENTER);
 			break;
 		}
