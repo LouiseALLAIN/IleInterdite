@@ -1,6 +1,8 @@
-import java.util.*;
+﻿import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
+
 import javax.swing.*;
 
 
@@ -70,7 +72,15 @@ public class IleInterdite {
 	 */
 	EventQueue.invokeLater(() -> {
 		/** Voici le contenu qui nous intéresse. */
-                CModele modele = new CModele();
+				System.out.println("Combien de joueurs souhaitez vous ? (Entre 2 et 4)");
+				int nb;
+				try {
+					nb = System.in.read() - 48;
+				} catch (IOException e) {
+					nb = 2;
+					e.printStackTrace();
+				}
+                CModele modele = new CModele(nb);
                 CVue vue = new CVue(modele);
 	    });
     }
@@ -91,8 +101,8 @@ class CModele extends Observable {
     public static final int HAUTEUR=10, LARGEUR=15;
     /** On stocke un tableau de cellules. */
     private Cellule[][] cellules;
-    int nbJoueurs = 2;
-    private Joueur[] joueurs = new Joueur[nbJoueurs];
+    public int nbJoueurs;
+    private Joueur[] joueurs;
     private int tour;
 
     public Joueur[] getJoueurs() {
@@ -103,12 +113,14 @@ class CModele extends Observable {
 		return tour;
 	}
 
-	/** Construction : on initialise un tableau de cellules. */
-    public CModele() {
+	/** Construction : on initialise un tableau de cellules. **/
+    public CModele(int nbJoueurs) {
 	/**
 	 * Pour éviter les problèmes aux bords, on ajoute une ligne et une
 	 * colonne de chaque côté, dont les cellules n'évolueront pas.
 	 */ 
+    	this.nbJoueurs = nbJoueurs;
+    	joueurs = new Joueur[nbJoueurs];
     	int x = (int)(Math.random() * LARGEUR + 1);
     	int y = (int)(Math.random() * HAUTEUR + 1);
     	for (int i = 0; i < nbJoueurs; i++) {
@@ -191,6 +203,14 @@ class CModele extends Observable {
 		else cellules[x1][y1].etat = etat.submergee;
 		if(cellules[x2][y2].etat == etat.normale) cellules[x2][y2].etat = etat.inondee;
 		else cellules[x2][y2].etat = etat.submergee;
+		double a = Math.random();
+		double b = Math.random();
+		if (a < 0.3) {
+			if (b < 0.25) joueurs[tour].cleEau +=1;
+			else if (b < 0.5) joueurs[tour].cleAir +=1;
+			else if (b < 0.75) joueurs[tour].cleFeu +=1;
+			else joueurs[tour].cleTerre +=1;
+		}
 		tour=(tour+1)%nbJoueurs;
 		/**
 		 * Pour finir, le modèle ayant changé, on signale aux observateurs
@@ -230,7 +250,7 @@ class CModele extends Observable {
     		joueurs[tour].nbActions+=1;
 		}
 		else if (k == KeyEvent.VK_DOWN && cellules[joueurs[tour].x][joueurs[tour].y+1].etat == etat.inondee && joueurs[tour].y+1 <= HAUTEUR) {
-			cellules[joueurs[tour].x+1][joueurs[tour].y+1].etat = etat.normale;
+			cellules[joueurs[tour].x][joueurs[tour].y+1].etat = etat.normale;
     		joueurs[tour].nbActions+=1;
 		}
 		else if (k == KeyEvent.VK_ENTER && cellules[joueurs[tour].x][joueurs[tour].y].etat == etat.inondee) {
@@ -243,6 +263,33 @@ class CModele extends Observable {
     	}
 	    	notifyObservers();
 	   
+    }
+    
+    public void recupere() {
+    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.eau && joueurs[tour].cleEau > 0) {
+    		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
+    		joueurs[tour].cleEau = 0;
+    		joueurs[tour].nbActions++;
+    	}
+    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.air && joueurs[tour].cleAir > 0) {
+    		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
+    		joueurs[tour].cleAir = 0;
+    		joueurs[tour].nbActions++;
+    	}
+    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.feu && joueurs[tour].cleFeu > 0) {
+    		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
+    		joueurs[tour].cleFeu = 0;
+    		joueurs[tour].nbActions++;
+    	}
+    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.terre && joueurs[tour].cleTerre > 0) {
+    		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
+    		joueurs[tour].cleTerre = 0;
+    		joueurs[tour].nbActions++;
+    	}
+    	if (joueurs[tour].nbActions == 3) {
+    		avance();
+    		joueurs[tour].nbActions = 0;
+    	}
     }
     
 
@@ -286,6 +333,10 @@ class Cellule {
 /** Fin de la classe Cellule, et du modèle en général. */
 
 class Joueur{
+	public int cleEau;
+	public int cleFeu;
+	public int cleAir;
+	public int cleTerre;
 	public int x, y;
 	public int nbActions;
 	
@@ -300,6 +351,10 @@ class Joueur{
 		this.x = x;
 		this.y = y;
 		this.nbActions = 0;
+		cleEau = 0;
+		cleFeu = 0;
+		cleTerre = 0;
+		cleAir = 0;
 	}
 }  
 
@@ -323,6 +378,7 @@ class CVue {
      */
     private VueGrille grille;
     private VueCommandes commandes;
+    private VuePlayer player;
     /** Construction d'une vue attachée à un modèle. */
     public CVue(CModele modele) {
 	/** Définition de la fenêtre principale. */
@@ -332,6 +388,7 @@ class CVue {
 	text.setLayout(new BoxLayout(text, BoxLayout.LINE_AXIS));
     text.add(new JLabel("Cliquer pour assécher une zone inondée"));
     JPanel bouton = new JPanel();
+ 
     
     /**
 	 * On précise un mode pour disposer les différents éléments à
@@ -363,6 +420,8 @@ class CVue {
     position.setLayout(new BoxLayout(position, BoxLayout.PAGE_AXIS));
     position.add(text);
     position.add(bouton);
+    player = new VuePlayer(modele);
+    position.add(player);
     frame.add(position);
 	
 	/**
@@ -387,16 +446,6 @@ class CVue {
     }
 }
 
-
-/**
- * Une classe pour représenter la zone d'affichage des cellules.
- *
- * JPanel est une classe d'éléments graphiques, pouvant comme JFrame contenir
- * d'autres éléments graphiques.
- *
- * Cette vue va être un observateur du modèle et sera mise à jour à chaque
- * nouvelle génération des cellules.
- */
 class VueGrille extends JPanel implements Observer {
     /** On maintient une référence vers le modèle. */
     private CModele modele;
@@ -426,14 +475,6 @@ class VueGrille extends JPanel implements Observer {
      */
     public void update() { repaint(); }
 
-    /**
-     * Les éléments graphiques comme [JPanel] possèdent une méthode
-     * [paintComponent] qui définit l'action à accomplir pour afficher cet
-     * élément. On la redéfinit ici pour lui confier l'affichage des cellules.
-     *
-     * La classe [Graphics] regroupe les éléments de style sur le dessin,
-     * comme la couleur actuelle.
-     */
     public void paintComponent(Graphics g) {
 	super.repaint();
 	/** Pour chaque cellule... */
@@ -475,6 +516,28 @@ class VueGrille extends JPanel implements Observer {
     }
 }
 
+class VuePlayer extends JPanel implements Observer {
+
+    private CModele modele;
+    private JLabel value;
+    public VuePlayer(CModele modele) {
+	this.modele = modele;
+	modele.addObserver(this);
+  	int actions = modele.getJoueurs()[modele.getTour()].nbActions;  //actions
+  	value = new JLabel(" Nombre de joueurs: " + modele.getJoueurs().length + " Au tour du joueur: " + modele.getTour() + "  nombre d'actions utilisées: " + actions);
+  	this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+  	this.add(value);
+    }
+
+    public void update() { 
+    	this.remove(value);
+        int actions = modele.getJoueurs()[modele.getTour()].nbActions;  //actions
+        this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+        value = new JLabel(" Nombre de joueurs: " + modele.getJoueurs().length + " Au tour du joueur: " + modele.getTour() + "  nombre d'actions utilisées: " + actions);
+        this.add(value);
+        this.validate();
+    	this.repaint(); }
+}
 
 /**
  * Une classe pour représenter la zone contenant le bouton.
@@ -530,23 +593,6 @@ class VueCommandes extends JPanel {
 	         boutonAvance.addActionListener(e -> { modele.avance(); });
 	         *
 	         */
-		
-		//System.out.println(modele.getJoueurs()); // nombre de joueurs
-		//System.out.println(modele.getTour());  //au tour de J1
-		int actions = modele.getJoueurs()[modele.getTour()].nbActions;  //actions
-		//System.out.println(actions);
-	    //VueCommandes commandes1;
-		//commandes1 = new VueCommandes(modele);
-		JPanel player = new JPanel();
-		player.setLayout(new FlowLayout());
-		player.add(new JLabel(" Nombre de joueurs: " + modele.getJoueurs().length + " Au tour du joueur: " + modele.getTour() + "  nombre d'actions restantes: " + actions));
-		JFrame frame1 = new JFrame();
-		//frame1.add(commandes1);
-		frame1 = new JFrame();
-		frame1.add(player);
-		frame1.pack();
-		frame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame1.setVisible(true);
 	
     }
 }
