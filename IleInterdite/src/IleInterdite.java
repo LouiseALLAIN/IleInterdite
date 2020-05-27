@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.List;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
@@ -105,8 +106,16 @@ class CModele extends Observable {
     private Joueur[] joueurs;
     private int tour;
     int[] artefacts = new int[4];
-    boolean defaite = false;
-
+    //boolean defaite = false;
+    boolean abandon = false;
+    /*boolean heliportRecouvert = false;
+    boolean manaAirRecouvert = false;
+    boolean manaTerreRecouvert = false;
+    boolean manaFeuRecouvert = false;
+    boolean manaEauRecouvert = false;*/
+    //boolean joueurCoince = false;
+    boolean[] joueursCoinces = new boolean[4];
+    
     public Joueur[] getJoueurs() {
 		return joueurs;
 	}
@@ -121,10 +130,16 @@ class CModele extends Observable {
 	 * Pour éviter les problèmes aux bords, on ajoute une ligne et une
 	 * colonne de chaque côté, dont les cellules n'évolueront pas.
 	 */ 
+    	/*for (int i = 0; i < nbJoueurs; i++) {
+    		joueursCoinces[i] = false;
+    	}*/
     	for (int i = 0; i < 4; i++) {
     		artefacts[i] = -1;
     	}
     	this.nbJoueurs = nbJoueurs;
+    	for (int i = 0; i < nbJoueurs; i++) {
+    		joueursCoinces[i] = false;
+    	}
     	joueurs = new Joueur[nbJoueurs];
     	int x = (int)(Math.random() * LARGEUR + 1);
     	int y = (int)(Math.random() * HAUTEUR + 1);
@@ -231,7 +246,7 @@ class CModele extends Observable {
 					pos[1] = joueurs[i].y+1;
 					echapatoire.add(pos);
 				}
-				if (echapatoire.size() == 0) this.defaite = true;
+				if (echapatoire.size() == 0) this.joueursCoinces[i] = true;
 				else {
 					cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = false;
 					int a = (int)(Math.random()*echapatoire.size());
@@ -343,14 +358,50 @@ class CModele extends Observable {
     	return true;
     }
     
-    public boolean defaite() {
-    	if(this.defaite) return true;
+    public int defaite() {
+    	/*if(this.manaAirRecouvert) return 1; 
+    	if(this.manaTerreRecouvert) return 2; 
+    	if(this.manaFeuRecouvert) return 3; 
+    	if(this.manaEauRecouvert) return 4; 
+    	if(this.abandon) return 5; 
+    	if(this.heliportRecouvert) return 6; 
+    	if(this.joueurCoince) return 7; 
     	for (int i = 0; i < LARGEUR+1; i++) {
     		for (int j = 0; j < HAUTEUR+1; j++) {
-    			if (cellules[i][j].type != elements.autre && cellules[i][j].etat == etat.submergee) return true;
+    			if (cellules[i][j].type != elements.autre && cellules[i][j].etat == etat.submergee) return 8;
+    		}
+    	}*/
+    	
+    	if(this.abandon) return 5;
+    	for(int i = 0; i < nbJoueurs; i++) {
+    		if(this.joueursCoinces[i] == true) return 7+i; 
+    	}
+    	for (int i = 0; i < LARGEUR+1; i++) {
+    		for (int j = 0; j < HAUTEUR+1; j++) {
+    			if (cellules[i][j].type == elements.air && cellules[i][j].etat == etat.submergee) return 1;
     		}
     	}
-    	return false;
+    	for (int i = 0; i < LARGEUR+1; i++) {
+    		for (int j = 0; j < HAUTEUR+1; j++) {
+    			if (cellules[i][j].type == elements.terre && cellules[i][j].etat == etat.submergee) return 2;
+    		}
+    	}
+    	for (int i = 0; i < LARGEUR+1; i++) {
+    		for (int j = 0; j < HAUTEUR+1; j++) {
+    			if (cellules[i][j].type == elements.feu && cellules[i][j].etat == etat.submergee) return 3;
+    		}
+    	}
+    	for (int i = 0; i < LARGEUR+1; i++) {
+    		for (int j = 0; j < HAUTEUR+1; j++) {
+    			if (cellules[i][j].type == elements.eau && cellules[i][j].etat == etat.submergee) return 4;
+    		}
+    	}
+    	for (int i = 0; i < LARGEUR+1; i++) {
+    		for (int j = 0; j < HAUTEUR+1; j++) {
+    			if (cellules[i][j].type == elements.heliport && cellules[i][j].etat == etat.submergee) return 6;
+    		}
+    	}
+    	return 0;
     }
     
 
@@ -444,7 +495,7 @@ class CVue {
     public CVue(CModele modele) {
 	/** Définition de la fenêtre principale. */
 	frame = new JFrame();
-	frame.setTitle("🏝️ L'île interdite ☠️");
+	frame.setTitle(" L'île interdite ");
 	JPanel text = new JPanel();
 	text.setLayout(new BoxLayout(text, BoxLayout.LINE_AXIS));
     text.add(new JLabel("Cliquer pour assécher une zone inondée"));
@@ -540,7 +591,7 @@ class VueGrille extends JPanel implements Observer {
     public void paintComponent(Graphics g) {
 	super.repaint();
 	/** Pour chaque cellule... */
-	if(!modele.victoire() && !modele.defaite()) {
+	if(!modele.victoire() && modele.defaite() == 0) {
 		for(int i=1; i<=CModele.LARGEUR; i++) {
 		    for(int j=1; j<=CModele.HAUTEUR; j++) {
 			/**
@@ -573,10 +624,44 @@ class VueGrille extends JPanel implements Observer {
 		g.fillRect(0,  0,  TAILLE*CModele.LARGEUR,
 				      TAILLE*CModele.HAUTEUR);
 		fin.setLayout(new BoxLayout(fin, BoxLayout.X_AXIS));
-		fin = new JLabel("Défaite");
-		Font font = new Font("Arial", Font.BOLD, 96);
+		switch(modele.defaite()) {
+		case 1:
+			fin = new JLabel("Défaite : le mana d'air a été submergé !");
+			break;
+		case 2:
+			fin = new JLabel("Défaite : le mana de terre a été submergé !");
+			break;
+		case 3:
+			fin = new JLabel("Défaite : le mana de feu a été submergé !");
+			break;
+		case 4:
+			fin = new JLabel("Défaite : le mana d'eau a été submergé !");
+			break;
+		case 5:
+			fin = new JLabel("Abandon...");
+			break;
+		case 6:
+			fin = new JLabel("Défaite : L'héliport a été submergé !");
+			break;
+		case 7:
+			fin = new JLabel("Défaite : Joueur 1 est submergé et coincé !");
+			break;
+		case 8:
+			fin = new JLabel("Défaite : Joueur 2 est submergé et coincé !");
+			break;
+		case 9:
+			fin = new JLabel("Défaite : Joueur 3 est submergé et coincé !");
+			break;
+		case 10:
+			fin = new JLabel("Défaite : Joueur 4 est submergé et coincé !");
+			break;
+		}
+		
+		Font font = new Font("Arial", Font.BOLD, 25);
 		fin.setFont(font);
 		this.add(fin);
+		/*int a = modele.defaite();
+		this.add(new JLabel(String.valueOf(a)));*/
 		this.validate();
 	}
     }
@@ -682,11 +767,11 @@ class VueCommandes extends JPanel {
 		 * texte qui doit l'étiqueter.
 		 * Puis on ajoute ce bouton au panneau [this].
 		 */
-		JButton AssecheHaut = new JButton("⬆");
-		JButton AssecheBas = new JButton("⬇");
-		JButton Asseche = new JButton("⚫");
-		JButton AssecheGauche = new JButton("⬅");
-		JButton AssecheDroite = new JButton("➡"); 
+		JButton AssecheHaut = new JButton("h");
+		JButton AssecheBas = new JButton("b");
+		JButton Asseche = new JButton("o");
+		JButton AssecheGauche = new JButton("g");
+		JButton AssecheDroite = new JButton("d"); 
 		this.add(AssecheHaut);
 		this.add(AssecheBas);
 		this.add(Asseche);
@@ -742,7 +827,7 @@ class Controleur implements ActionListener, KeyListener {
     public Controleur(CModele modele) { this.modele = modele; }
 
     public void keyPressed(KeyEvent e) {
-    	if (modele.victoire() || modele.defaite()) return;
+    	if (modele.victoire() || modele.defaite() != 0) return;
 		int keyCode = e.getKeyCode();
 		switch (keyCode) {
 		case KeyEvent.VK_UP:
@@ -778,26 +863,26 @@ class Controleur implements ActionListener, KeyListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (modele.victoire() || modele.defaite()) return;
+		if (modele.victoire() || modele.defaite() != 0) return;
 		String actionCode = e.getActionCommand();
 		switch (actionCode) {
-		case "⬆":
+		case "h":
 			modele.asseche(KeyEvent.VK_UP);
 			break;
-		case "⬇":
+		case "b":
 			modele.asseche(KeyEvent.VK_DOWN);
 			break;
-		case "➡":
+		case "d":
 			modele.asseche(KeyEvent.VK_RIGHT);
 			break;
-		case "⬅":
+		case "g":
 			modele.asseche(KeyEvent.VK_LEFT);
 			break;
-		case "⚫":
+		case "o":
 			modele.asseche(KeyEvent.VK_ENTER);
 			break;
 		case "Abandonner":
-			modele.defaite = true;
+			modele.abandon = true;
 			break;
 		}
 		
