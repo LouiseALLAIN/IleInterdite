@@ -275,11 +275,22 @@ class CModele extends Observable {
     
     public void deplace(int k) {
 		cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
-		if(k == KeyEvent.VK_RIGHT && cellules[joueurs[tour].x+1][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x+1 <= LARGEUR) joueurs[tour].x+=1;
-		else if(k == KeyEvent.VK_LEFT && cellules[joueurs[tour].x-1][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x-1 > 0) joueurs[tour].x-=1;
-		else if(k == KeyEvent.VK_UP && cellules[joueurs[tour].x][joueurs[tour].y-1].etat != etat.submergee && joueurs[tour].y-1 > 0) joueurs[tour].y-=1;
-		else if (k == KeyEvent.VK_DOWN && cellules[joueurs[tour].x][joueurs[tour].y+1].etat != etat.submergee && joueurs[tour].y+1 <= HAUTEUR) joueurs[tour].y+=1;
-	    joueurs[tour].nbActions++;
+		if(k == KeyEvent.VK_RIGHT && cellules[joueurs[tour].x+1][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x+1 <= LARGEUR) {
+			joueurs[tour].x+=1;
+			joueurs[tour].nbActions++;
+		}
+		else if(k == KeyEvent.VK_LEFT && cellules[joueurs[tour].x-1][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x-1 > 0) {
+			joueurs[tour].x-=1;
+			joueurs[tour].nbActions++;
+		}
+		else if(k == KeyEvent.VK_UP && cellules[joueurs[tour].x][joueurs[tour].y-1].etat != etat.submergee && joueurs[tour].y-1 > 0) {
+			joueurs[tour].y-=1;
+			joueurs[tour].nbActions++;
+		}
+		else if (k == KeyEvent.VK_DOWN && cellules[joueurs[tour].x][joueurs[tour].y+1].etat != etat.submergee && joueurs[tour].y+1 <= HAUTEUR) {
+			joueurs[tour].y+=1;
+			joueurs[tour].nbActions++;
+		}
 	    for (int i = 0; i < nbJoueurs; i++) {
 	    	cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = true;
 	    }
@@ -318,25 +329,25 @@ class CModele extends Observable {
     }
     
     public void recupere() {
-    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.eau && joueurs[tour].cleEau > 0) {
+    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.eau && joueurs[tour].cleEau >= 4) {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleEau = 0;
     		joueurs[tour].nbActions++;
     		artefacts[0] = tour+1;
     	}
-    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.air && joueurs[tour].cleAir > 0) {
+    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.air && joueurs[tour].cleAir >= 4) {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleAir = 0;
     		joueurs[tour].nbActions++;
     		artefacts[1] = tour+1;
     	}
-    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.feu && joueurs[tour].cleFeu > 0) {
+    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.feu && joueurs[tour].cleFeu >= 4) {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleFeu = 0;
     		joueurs[tour].nbActions++;
     		artefacts[2] = tour+1;
     	}
-    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.terre && joueurs[tour].cleTerre > 0) {
+    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.terre && joueurs[tour].cleTerre >= 4) {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleTerre = 0;
     		joueurs[tour].nbActions++;
@@ -402,6 +413,36 @@ class CModele extends Observable {
     		}
     	}
     	return 0;
+    }
+    
+    public void echange(int j, elements e) {
+    	if (j != tour && joueurs[j].x == joueurs[tour].x && joueurs[j].y == joueurs[tour].y) {
+    		if (e == elements.eau && joueurs[tour].cleEau > 0) {
+    			joueurs[tour].cleEau--;
+    			joueurs[j].cleEau++;
+    			joueurs[tour].nbActions++;
+    		}
+    		else if (e == elements.air && joueurs[tour].cleAir > 0) {
+    			joueurs[tour].cleAir--;
+    			joueurs[j].cleAir++;
+    			joueurs[tour].nbActions++;
+    		}
+    		else if (e == elements.feu && joueurs[tour].cleFeu > 0) {
+    			joueurs[tour].cleFeu--;
+    			joueurs[j].cleFeu++;
+    			joueurs[tour].nbActions++;
+    		}
+    		else if (e == elements.terre && joueurs[tour].cleTerre > 0) {
+    			joueurs[tour].cleTerre--;
+    			joueurs[j].cleTerre++;
+    			joueurs[tour].nbActions++;
+    		}
+    	}
+    	if (joueurs[tour].nbActions == 3) {
+    		avance();
+    	}
+    	notifyObservers();
+    	
     }
     
 
@@ -824,7 +865,14 @@ class Controleur implements ActionListener, KeyListener {
      * englobante [VueCommandes].
      */
     CModele modele;
-    public Controleur(CModele modele) { this.modele = modele; }
+    boolean[] j;
+    public Controleur(CModele modele) { 
+    	this.modele = modele; 
+    	j = new boolean[modele.nbJoueurs];
+    	for (int i = 0; i < modele.nbJoueurs; i++) {
+    		j[i] = false;
+    	}
+    }
 
     public void keyPressed(KeyEvent e) {
     	if (modele.victoire() || modele.defaite() != 0) return;
@@ -848,7 +896,57 @@ class Controleur implements ActionListener, KeyListener {
 		case KeyEvent.VK_SPACE:
 			modele.recupere();
 			break;
+		case KeyEvent.VK_E:
+			for (int i = 0; i < modele.nbJoueurs; i++) {
+				if (j[i]) {
+					modele.echange(i, elements.eau);
+					break;
+				}
+			}
+			break;
+		case KeyEvent.VK_A:
+			for (int i = 0; i < modele.nbJoueurs; i++) {
+				if (j[i]) {
+					modele.echange(i, elements.air);
+					break;
+				}
+			}
+			break;
+		case KeyEvent.VK_F:
+			for (int i = 0; i < modele.nbJoueurs; i++) {
+				if (j[i]) {
+					modele.echange(i, elements.feu);
+					break;
+				}
+			}
+			break;
+		case KeyEvent.VK_T:
+			for (int i = 0; i < modele.nbJoueurs; i++) {
+				if (j[i]) {
+					modele.echange(i, elements.terre);
+					break;
+				}
+			}
+			break;
 		}
+		for (int i = 0; i < modele.nbJoueurs; i++) {
+			j[i] = false;
+		}
+		switch(keyCode) {
+		case KeyEvent.VK_F1:
+			j[0] = true;
+			break;
+		case KeyEvent.VK_F2:
+			j[1] = true;
+			break;
+		case KeyEvent.VK_F3:
+			if (modele.nbJoueurs > 2) j[2] = true;
+			break;
+		case KeyEvent.VK_F4:
+			if(modele.nbJoueurs == 4) j[3] = true;
+			break;
+		}
+		
 	}
 	@Override
 	public void keyTyped(KeyEvent e) {
