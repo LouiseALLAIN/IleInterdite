@@ -11,23 +11,23 @@ import javax.swing.*;
  */ 
 interface Observer {
     /**
-     * Un observateur doit posséder une méthode [update] déclenchant la mise à
+     * Un observateur doit possÃ©der une mÃ©thode [update] dÃ©clenchant la mise Ã 
      * jour.
      */
     public void update();
     /**
-     * La version officielle de Java possède des paramètres précisant le
+     * La version officielle de Java possÃ¨de des paramÃ¨tres prÃ©cisant le
      * changement qui a eu lieu.
      */
 }
 
 /**
- * Classe des objets pouvant être observés.
+ * Classe des objets pouvant Ãªtre observÃ©s.
  */
 abstract class Observable {
     /**
-     * On a une liste [observers] d'observateurs, initialement vide, à laquelle
-     * viennent s'inscrire les observateurs via la méthode [addObserver].
+     * On a une liste [observers] d'observateurs, initialement vide, Ã  laquelle
+     * viennent s'inscrire les observateurs via la mÃ©thode [addObserver].
      */
     private ArrayList<Observer> observers;
     public Observable() {
@@ -38,10 +38,10 @@ abstract class Observable {
     }
 
     /**
-     * Lorsque l'état de l'objet observé change, il est convenu d'appeler la
-     * méthode [notifyObservers] pour prévenir l'ensemble des observateurs
-     * enregistrés.
-     * On le fait ici concrètement en appelant la méthode [update] de chaque
+     * Lorsque l'Ã©tat de l'objet observÃ© change, il est convenu d'appeler la
+     * mÃ©thode [notifyObservers] pour prÃ©venir l'ensemble des observateurs
+     * enregistrÃ©s.
+     * On le fait ici concrÃ¨tement en appelant la mÃ©thode [update] de chaque
      * observateur.
      */
     public void notifyObservers() {
@@ -50,28 +50,28 @@ abstract class Observable {
 	}
     }
 }
-/** Fin du schéma observateur/observé. */
+/** Fin du schÃ©ma observateur/observÃ©. */
 
 
 /**
- * Nous allons commencer à construire notre application, en voici la classe
+ * Nous allons commencer Ã  construire notre application, en voici la classe
  * principale.
  */
 public class IleInterdite {
     /**
-     * L'amorçage est fait en créant le modèle et la vue, par un simple appel
-     * à chaque constructeur.
-     * Ici, le modèle est créé indépendamment (il s'agit d'une partie autonome
-     * de l'application), et la vue prend le modèle comme paramètre (son
-     * objectif est de faire le lien entre modèle et utilisateur).
+     * L'amorÃ§age est fait en crÃ©ant le modÃ¨le et la vue, par un simple appel
+     * Ã  chaque constructeur.
+     * Ici, le modÃ¨le est crÃ©Ã© indÃ©pendamment (il s'agit d'une partie autonome
+     * de l'application), et la vue prend le modÃ¨le comme paramÃ¨tre (son
+     * objectif est de faire le lien entre modÃ¨le et utilisateur).
      */
     public static void main(String[] args) {
 	/**
-	 * Pour les besoins du jour on considère la ligne EvenQueue... comme une
+	 * Pour les besoins du jour on considÃ¨re la ligne EvenQueue... comme une
 	 * incantation qu'on pourra expliquer plus tard.
 	 */
     	EventQueue.invokeLater(() -> {
-    		/** Voici le contenu qui nous intéresse. */
+    		/** Voici le contenu qui nous intÃ©resse. */
     				
     				CVueMenu vueMenu = new CVueMenu();
     				/**while(true) {
@@ -89,23 +89,23 @@ public class IleInterdite {
 
 
 /**
- * Le modèle : le coeur de l'application.
+ * Le modÃ¨le : le coeur de l'application.
  *
- * Le modèle étend la classe [Observable] : il va posséder un certain nombre
+ * Le modÃ¨le Ã©tend la classe [Observable] : il va possÃ©der un certain nombre
  * d'observateurs (ici, un : la partie de la vue responsable de l'affichage)
- * et devra les prévenir avec [notifyObservers] lors des modifications.
- * Voir la méthode [avance()] pour cela.
+ * et devra les prÃ©venir avec [notifyObservers] lors des modifications.
+ * Voir la mÃ©thode [avance()] pour cela.
  */
 class CModele extends Observable {
     /** On fixe la taille de la grille. */
     public static final int HAUTEUR=10, LARGEUR=15;
-	boolean abandon = false;
     /** On stocke un tableau de cellules. */
     private Cellule[][] cellules;
     public int nbJoueurs;
     private Joueur[] joueurs;
     private int tour;
     int[] artefacts = new int[4];
+    boolean defaite = false;
 
     public Joueur[] getJoueurs() {
 		return joueurs;
@@ -118,8 +118,8 @@ class CModele extends Observable {
 	/** Construction : on initialise un tableau de cellules. **/
     public CModele(int nbJoueurs) {
 	/**
-	 * Pour éviter les problèmes aux bords, on ajoute une ligne et une
-	 * colonne de chaque côté, dont les cellules n'évolueront pas.
+	 * Pour Ã©viter les problÃ¨mes aux bords, on ajoute une ligne et une
+	 * colonne de chaque cÃ´tÃ©, dont les cellules n'Ã©volueront pas.
 	 */ 
     	for (int i = 0; i < 4; i++) {
     		artefacts[i] = -1;
@@ -146,8 +146,8 @@ class CModele extends Observable {
     }
 
     /**
-     * Initialisation aléatoire des cellules, exceptées celle des bords qui
-     * ont été ajoutés.
+     * Initialisation alÃ©atoire des cellules, exceptÃ©es celle des bords qui
+     * ont Ã©tÃ© ajoutÃ©s.
      */
     public void init() {
     	int xeau =(int)(Math.random() * LARGEUR + 1);
@@ -181,7 +181,7 @@ class CModele extends Observable {
     }
 
     /**
-     * Calcul de la génération suivante.
+     * Calcul de la gÃ©nÃ©ration suivante.
      */
     public void avance() {
 		int x0 = (int)(Math.random() * LARGEUR + 1);
@@ -208,6 +208,39 @@ class CModele extends Observable {
 		else cellules[x1][y1].etat = etat.submergee;
 		if(cellules[x2][y2].etat == etat.normale) cellules[x2][y2].etat = etat.inondee;
 		else cellules[x2][y2].etat = etat.submergee;
+		for (int i = 0; i < nbJoueurs; i++) {
+			if (cellules[joueurs[i].x][joueurs[i].y].etat == etat.submergee) {
+				ArrayList<int[]> echapatoire = new ArrayList<int[]>();
+				int[] pos = new int[2];
+				if(cellules[joueurs[i].x-1][joueurs[i].y].etat != etat.submergee) {
+					pos[0] = joueurs[i].x-1;
+					pos[1] = joueurs[i].y;
+					echapatoire.add(pos);}
+				if(cellules[joueurs[i].x+1][joueurs[i].y].etat != etat.submergee) {
+					pos[0] = joueurs[i].x+1;
+					pos[1] = joueurs[i].y;
+					echapatoire.add(pos);
+				}
+				if(cellules[joueurs[i].x][joueurs[i].y-1].etat != etat.submergee) {
+					pos[0] = joueurs[i].x;
+					pos[1] = joueurs[i].y-1;
+					echapatoire.add(pos);
+				}
+				if(cellules[joueurs[i].x][joueurs[i].y+1].etat != etat.submergee) {
+					pos[0] = joueurs[i].x;
+					pos[1] = joueurs[i].y+1;
+					echapatoire.add(pos);
+				}
+				if (echapatoire.size() == 0) this.defaite = true;
+				else {
+					cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = false;
+					int a = (int)(Math.random()*echapatoire.size());
+					joueurs[i].x = echapatoire.get(a)[0];
+					joueurs[i].y = echapatoire.get(a)[1];
+					cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = true;
+				}
+			}
+		}
 		double a = Math.random();
 		double b = Math.random();
 		if (a < 0.3) {
@@ -219,8 +252,8 @@ class CModele extends Observable {
 		tour=(tour+1)%nbJoueurs;
 		joueurs[tour].nbActions = 0;
 		/**
-		 * Pour finir, le modèle ayant changé, on signale aux observateurs
-		 * qu'ils doivent se mettre à jour.
+		 * Pour finir, le modÃ¨le ayant changÃ©, on signale aux observateurs
+		 * qu'ils doivent se mettre Ã  jour.
 		 */
 		notifyObservers();
     }
@@ -310,39 +343,44 @@ class CModele extends Observable {
     	return true;
     }
     
+    public boolean defaite() {
+    	if(this.defaite) return true;
+    	for (int i = 0; i < LARGEUR+1; i++) {
+    		for (int j = 0; j < HAUTEUR+1; j++) {
+    			if (cellules[i][j].type != elements.autre && cellules[i][j].etat == etat.submergee) return true;
+    		}
+    	}
+    	return false;
+    }
     
 
 
     /**
-     * Une méthode pour renvoyer la cellule aux coordonnées choisies (sera
-     * utilisée par la vue).
+     * Une mÃ©thode pour renvoyer la cellule aux coordonnÃ©es choisies (sera
+     * utilisÃ©e par la vue).
      */
     public Cellule getCellule(int x, int y) {
 	return cellules[x][y];
     }
-
-	public boolean abandon() {
-		return this.abandon;
-	}
 }
 
 /** Fin de la classe CModele. */
 
 /**
- * Définition d'une classe pour les cellules.
- * Cette classe fait encore partie du modèle.
+ * DÃ©finition d'une classe pour les cellules.
+ * Cette classe fait encore partie du modÃ¨le.
  */
 class Cellule {
-    /** On conserve un pointeur vers la classe principale du modèle. */
+    /** On conserve un pointeur vers la classe principale du modÃ¨le. */
     private CModele modele;
 
-    /** L'état d'une cellule est donné par un booléen. */
+    /** L'Ã©tat d'une cellule est donnÃ© par un boolÃ©en. */
     protected etat etat;
     protected elements type;
     protected boolean presenceJoueur;
     /**
-     * On stocke les coordonnées pour pouvoir les passer au modèle lors
-     * de l'appel à [compteVoisines].
+     * On stocke les coordonnÃ©es pour pouvoir les passer au modÃ¨le lors
+     * de l'appel Ã  [compteVoisines].
      */
     private final int x, y;
     public Cellule(CModele modele, int x, int y) {
@@ -353,7 +391,7 @@ class Cellule {
         this.presenceJoueur = false;
     }
 }    
-/** Fin de la classe Cellule, et du modèle en général. */
+/** Fin de la classe Cellule, et du modÃ¨le en gÃ©nÃ©ral. */
 
 class Joueur{
 	public int cleEau;
@@ -384,55 +422,55 @@ class Joueur{
 /**
  * La vue : l'interface avec l'utilisateur.
  *
- * On définit une classe chapeau [CVue] qui crée la fenêtre principale de 
+ * On dÃ©finit une classe chapeau [CVue] qui crÃ©e la fenÃªtre principale de 
  * l'application et contient les deux parties principales de notre vue :
- *  - Une zone d'affichage où on voit l'ensemble des cellules.
- *  - Une zone de commande avec un bouton pour passer à la génération suivante.
+ *  - Une zone d'affichage oÃ¹ on voit l'ensemble des cellules.
+ *  - Une zone de commande avec un bouton pour passer Ã  la gÃ©nÃ©ration suivante.
  */
 class CVue {
     /**
-     * JFrame est une classe fournie pas Swing. Elle représente la fenêtre
+     * JFrame est une classe fournie pas Swing. Elle reprÃ©sente la fenÃªtre
      * de l'application graphique.
      */
     private JFrame frame;
     /**
-     * VueGrille et VueCommandes sont deux classes définies plus loin, pour
+     * VueGrille et VueCommandes sont deux classes dÃ©finies plus loin, pour
      * nos deux parties de l'interface graphique.
      */
     private VueGrille grille;
     private VueCommandes commandes;
     private VuePlayer player;
-    /** Construction d'une vue attachée à un modèle. */
+    /** Construction d'une vue attachÃ©e Ã  un modÃ¨le. */
     public CVue(CModele modele) {
-	/** Définition de la fenêtre principale. */
+	/** DÃ©finition de la fenÃªtre principale. */
 	frame = new JFrame();
-	frame.setTitle("L'île interdite");
+	frame.setTitle("ðŸï¸ L'Ã®le interdite â˜ ï¸");
 	JPanel text = new JPanel();
 	text.setLayout(new BoxLayout(text, BoxLayout.LINE_AXIS));
-    text.add(new JLabel("Cliquer pour assécher une zone inondée"));
+    text.add(new JLabel("Cliquer pour assÃ©cher une zone inondÃ©e"));
     JPanel bouton = new JPanel();
  
     
     /**
-	 * On précise un mode pour disposer les différents éléments à
-	 * l'intérieur de la fenêtre. Quelques possibilités sont :
-	 *  - BorderLayout (défaut pour la classe JFrame) : chaque élément est
-	 *    disposé au centre ou le long d'un bord.
-	 *  - FlowLayout (défaut pour un JPanel) : les éléments sont disposés
-	 *    l'un à la suite de l'autre, dans l'ordre de leur ajout, les lignes
-	 *    se formant de gauche à droite et de haut en bas. Un élément peut
-	 *    passer à la ligne lorsque l'on redimensionne la fenêtre.
-	 *  - GridLayout : les éléments sont disposés l'un à la suite de
+	 * On prÃ©cise un mode pour disposer les diffÃ©rents Ã©lÃ©ments Ã 
+	 * l'intÃ©rieur de la fenÃªtre. Quelques possibilitÃ©s sont :
+	 *  - BorderLayout (dÃ©faut pour la classe JFrame) : chaque Ã©lÃ©ment est
+	 *    disposÃ© au centre ou le long d'un bord.
+	 *  - FlowLayout (dÃ©faut pour un JPanel) : les Ã©lÃ©ments sont disposÃ©s
+	 *    l'un Ã  la suite de l'autre, dans l'ordre de leur ajout, les lignes
+	 *    se formant de gauche Ã  droite et de haut en bas. Un Ã©lÃ©ment peut
+	 *    passer Ã  la ligne lorsque l'on redimensionne la fenÃªtre.
+	 *  - GridLayout : les Ã©lÃ©ments sont disposÃ©s l'un Ã  la suite de
 	 *    l'autre sur une grille avec un nombre de lignes et un nombre de
-	 *    colonnes définis par le programmeur, dont toutes les cases ont la
-	 *    même dimension. Cette dimension est calculée en fonction du
-	 *    nombre de cases à placer et de la dimension du contenant.
+	 *    colonnes dÃ©finis par le programmeur, dont toutes les cases ont la
+	 *    mÃªme dimension. Cette dimension est calculÃ©e en fonction du
+	 *    nombre de cases Ã  placer et de la dimension du contenant.
 	 */
 	frame.setLayout(new FlowLayout());
 	//frame.setLayout(new BorderLayout());
 
 
-	/** Définition des deux vues et ajout à la fenêtre. */
+	/** DÃ©finition des deux vues et ajout Ã  la fenÃªtre. */
 	grille = new VueGrille(modele);
 	frame.add(grille);
 	commandes = new VueCommandes(modele);
@@ -448,20 +486,20 @@ class CVue {
     frame.add(position);
 	
 	/**
-	 * Remarque : on peut passer à la méthode [add] des paramètres
-	 * supplémentaires indiquant où placer l'élément. Par exemple, si on
-	 * avait conservé la disposition par défaut [BorderLayout], on aurait
-	 * pu écrire le code suivant pour placer la grille à gauche et les
-	 * commandes à droite.
+	 * Remarque : on peut passer Ã  la mÃ©thode [add] des paramÃ¨tres
+	 * supplÃ©mentaires indiquant oÃ¹ placer l'Ã©lÃ©ment. Par exemple, si on
+	 * avait conservÃ© la disposition par dÃ©faut [BorderLayout], on aurait
+	 * pu Ã©crire le code suivant pour placer la grille Ã  gauche et les
+	 * commandes Ã  droite.
 	 *     frame.add(grille, BorderLayout.WEST);
 	 *     frame.add(commandes, BorderLayout.EAST);
 	 */
 
 	/**
 	 * Fin de la plomberie :
-	 *  - Ajustement de la taille de la fenêtre en fonction du contenu.
-	 *  - Indiquer qu'on quitte l'application si la fenêtre est fermée.
-	 *  - Préciser que la fenêtre doit bien apparaître à l'écran.
+	 *  - Ajustement de la taille de la fenÃªtre en fonction du contenu.
+	 *  - Indiquer qu'on quitte l'application si la fenÃªtre est fermÃ©e.
+	 *  - PrÃ©ciser que la fenÃªtre doit bien apparaÃ®tre Ã  l'Ã©cran.
 	 */
 	frame.pack();
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -470,9 +508,9 @@ class CVue {
 }
 
 class VueGrille extends JPanel implements Observer {
-    /** On maintient une référence vers le modèle. */
+    /** On maintient une rÃ©fÃ©rence vers le modÃ¨le. */
     private CModele modele;
-    /** Définition d'une taille (en pixels) pour l'affichage des cellules. */
+    /** DÃ©finition d'une taille (en pixels) pour l'affichage des cellules. */
     private final static int TAILLE = 40;
     JLabel fin = new JLabel(" ");
     /** Constructeur. */
@@ -481,8 +519,8 @@ class VueGrille extends JPanel implements Observer {
 	/** On enregistre la vue [this] en tant qu'observateur de [modele]. */
 	modele.addObserver(this);
 	/**
-	 * Définition et application d'une taille fixe pour cette zone de
-	 * l'interface, calculée en fonction du nombre de cellules et de la
+	 * DÃ©finition et application d'une taille fixe pour cette zone de
+	 * l'interface, calculÃ©e en fonction du nombre de cellules et de la
 	 * taille d'affichage.
 	 */
 	Dimension dim = new Dimension(TAILLE*CModele.LARGEUR,
@@ -492,63 +530,65 @@ class VueGrille extends JPanel implements Observer {
     }
 
     /**
-     * L'interface [Observer] demande de fournir une méthode [update], qui
-     * sera appelée lorsque la vue sera notifiée d'un changement dans le
-     * modèle. Ici on se content de réafficher toute la grille avec la méthode
-     * prédéfinie [repaint].
+     * L'interface [Observer] demande de fournir une mÃ©thode [update], qui
+     * sera appelÃ©e lorsque la vue sera notifiÃ©e d'un changement dans le
+     * modÃ¨le. Ici on se content de rÃ©afficher toute la grille avec la mÃ©thode
+     * prÃ©dÃ©finie [repaint].
      */
     public void update() { repaint(); }
 
     public void paintComponent(Graphics g) {
 	super.repaint();
 	/** Pour chaque cellule... */
-	if(modele.abandon()) {
-		this.removeAll();
-		g.setColor(Color.WHITE);
-		g.fillRect(0,  0,  TAILLE*CModele.LARGEUR,
-				      TAILLE*CModele.HAUTEUR);
-		fin.setLayout(new BoxLayout(fin, BoxLayout.X_AXIS));
-		fin = new JLabel("ABANDON...");
-		Font font = new Font("Arial", Font.BOLD, 96);
-		fin.setFont(font);
-		this.add(fin);
-		this.validate();
-	}
-	
-	if(!modele.victoire()) {
+	if(!modele.victoire() && !modele.defaite()) {
 		for(int i=1; i<=CModele.LARGEUR; i++) {
 		    for(int j=1; j<=CModele.HAUTEUR; j++) {
 			/**
 			 * ... Appeler une fonction d'affichage auxiliaire.
 			 * On lui fournit les informations de dessin [g] et les
-			 * coordonnées du coin en haut à gauche.
+			 * coordonnÃ©es du coin en haut Ã  gauche.
 			 */
 			paint(g, modele.getCellule(i, j), (i-1)*TAILLE, (j-1)*TAILLE);
 		    }
 		}
-	}else {
+		g.setColor(Color.WHITE);
+		for (int i = 0; i < modele.nbJoueurs; i++) {
+			g.drawString(Integer.toString(i+1), modele.getJoueurs()[i].x*TAILLE-23, modele.getJoueurs()[i].y*TAILLE-15);
+		}
+	}else if (modele.victoire()){
 		this.removeAll();
 		g.setColor(Color.WHITE);
 		g.fillRect(0,  0,  TAILLE*CModele.LARGEUR,
 				      TAILLE*CModele.HAUTEUR);
 		fin.setLayout(new BoxLayout(fin, BoxLayout.X_AXIS));
-		fin = new JLabel("VICTOIRE !");
+		fin = new JLabel("VICTOIRE");
 		Font font = new Font("Arial", Font.BOLD, 96);
 		fin.setFont(font);
 		this.add(fin);
 		this.validate();
-		
+	}
+	else {
+		this.removeAll();
+		g.setColor(Color.WHITE);
+		g.fillRect(0,  0,  TAILLE*CModele.LARGEUR,
+				      TAILLE*CModele.HAUTEUR);
+		fin.setLayout(new BoxLayout(fin, BoxLayout.X_AXIS));
+		fin = new JLabel("DÃ©faite");
+		Font font = new Font("Arial", Font.BOLD, 96);
+		fin.setFont(font);
+		this.add(fin);
+		this.validate();
 	}
     }
     /**
      * Fonction auxiliaire de dessin d'une cellule.
-     * Ici, la classe [Cellule] ne peut être désignée que par l'intermédiaire
-     * de la classe [CModele] à laquelle elle est interne, d'où type
+     * Ici, la classe [Cellule] ne peut Ãªtre dÃ©signÃ©e que par l'intermÃ©diaire
+     * de la classe [CModele] Ã  laquelle elle est interne, d'oÃ¹ type
      * [CModele.Cellule].
-     * Ceci serait impossible si [Cellule] était déclarée privée dans [CModele].
+     * Ceci serait impossible si [Cellule] Ã©tait dÃ©clarÃ©e privÃ©e dans [CModele].
      */
     private void paint(Graphics g, Cellule c, int x, int y) {
-        /** Sélection d'une couleur. */
+        /** SÃ©lection d'une couleur. */
 	if (c.etat == etat.normale) g.setColor(new Color(186, 74, 0));
 	else if (c.etat == etat.inondee) g.setColor(new Color(93, 173, 226));
 	else g.setColor(new Color(27, 79, 114));
@@ -585,10 +625,10 @@ class VuePlayer extends JPanel implements Observer {
   	this.add(new JLabel("Nombre d'actions restantes: " + (3-actions)));
   	for (int i = 0; i < modele.nbJoueurs; i++) {
   		this.add(new JLabel("Joueur " + (i+1) + " : " + 
-  				modele.getJoueurs()[i].cleEau + " Clés eau, " + 
-  				modele.getJoueurs()[i].cleAir + " Clés air, " + 
-  				modele.getJoueurs()[i].cleFeu + " Clés feu, " + 
-  				modele.getJoueurs()[i].cleTerre + " Clés terre" ));
+  				modele.getJoueurs()[i].cleEau + " ClÃ©s eau, " + 
+  				modele.getJoueurs()[i].cleAir + " ClÃ©s air, " + 
+  				modele.getJoueurs()[i].cleFeu + " ClÃ©s feu, " + 
+  				modele.getJoueurs()[i].cleTerre + " ClÃ©s terre" ));
   	}
   	this.add(value0);
   	this.add(value1);
@@ -604,15 +644,15 @@ class VuePlayer extends JPanel implements Observer {
       	this.add(new JLabel("Nombre d'actions restantes: " + (3-actions)));
       	for (int i = 0; i < modele.nbJoueurs; i++) {
       		this.add(new JLabel("Joueur " + (i+1) + " : " + 
-      				modele.getJoueurs()[i].cleEau + " Clés eau, " + 
-      				modele.getJoueurs()[i].cleAir + " Clés air, " + 
-      				modele.getJoueurs()[i].cleFeu + " Clés feu, " + 
-      				modele.getJoueurs()[i].cleTerre + " Clés terre" ));
+      				modele.getJoueurs()[i].cleEau + " ClÃ©s eau, " + 
+      				modele.getJoueurs()[i].cleAir + " ClÃ©s air, " + 
+      				modele.getJoueurs()[i].cleFeu + " ClÃ©s feu, " + 
+      				modele.getJoueurs()[i].cleTerre + " ClÃ©s terre" ));
       	}
-      	if(modele.artefacts[0] != -1) value0 = new JLabel("Artéfact d'eau possédé par Joueur " + modele.artefacts[0]);
-      	if(modele.artefacts[1] != -1) value1 = new JLabel("Artéfact d'air possédé par Joueur " + modele.artefacts[1]);
-      	if(modele.artefacts[2] != -1) value2 = new JLabel("Artéfact de feu possédé par Joueur " + modele.artefacts[2]);
-      	if(modele.artefacts[3] != -1) value3 = new JLabel("Artéfact de terre possédé par Joueur " + modele.artefacts[3]);
+      	if(modele.artefacts[0] != -1) value0 = new JLabel("ArtÃ©fact d'eau possÃ©dÃ© par Joueur " + modele.artefacts[0]);
+      	if(modele.artefacts[1] != -1) value1 = new JLabel("ArtÃ©fact d'air possÃ©dÃ© par Joueur " + modele.artefacts[1]);
+      	if(modele.artefacts[2] != -1) value2 = new JLabel("ArtÃ©fact de feu possÃ©dÃ© par Joueur " + modele.artefacts[2]);
+      	if(modele.artefacts[3] != -1) value3 = new JLabel("ArtÃ©fact de terre possÃ©dÃ© par Joueur " + modele.artefacts[3]);
       	this.add(value0);
       	this.add(value1);
       	this.add(value2);
@@ -622,15 +662,15 @@ class VuePlayer extends JPanel implements Observer {
 }
 
 /**
- * Une classe pour représenter la zone contenant le bouton.
+ * Une classe pour reprÃ©senter la zone contenant le bouton.
  *
- * Cette zone n'aura pas à être mise à jour et ne sera donc pas un observateur.
- * En revanche, comme la zone précédente, celle-ci est un panneau [JPanel].
+ * Cette zone n'aura pas Ã  Ãªtre mise Ã  jour et ne sera donc pas un observateur.
+ * En revanche, comme la zone prÃ©cÃ©dente, celle-ci est un panneau [JPanel].
  */
 class VueCommandes extends JPanel {
     /**
      * Pour que le bouton puisse transmettre ses ordres, on garde une
-     * référence au modèle.
+     * rÃ©fÃ©rence au modÃ¨le.
      */
     private CModele modele;
     
@@ -638,25 +678,24 @@ class VueCommandes extends JPanel {
     public VueCommandes(CModele modele) {
 		this.modele = modele;
 		/**
-		 * On crée un nouveau bouton, de classe [JButton], en précisant le
-		 * texte qui doit l'étiqueter.
+		 * On crÃ©e un nouveau bouton, de classe [JButton], en prÃ©cisant le
+		 * texte qui doit l'Ã©tiqueter.
 		 * Puis on ajoute ce bouton au panneau [this].
 		 */
-		JButton AssecheHaut = new JButton("h");
-		JButton AssecheBas = new JButton("b");
-		JButton Asseche = new JButton("o");
-		JButton AssecheGauche = new JButton("g");
-		JButton AssecheDroite = new JButton("d"); 
-		JButton Abandon = new JButton("Abandonner"); 
+		JButton AssecheHaut = new JButton("â¬†");
+		JButton AssecheBas = new JButton("â¬‡");
+		JButton Asseche = new JButton("âš«");
+		JButton AssecheGauche = new JButton("â¬…");
+		JButton AssecheDroite = new JButton("âž¡"); 
 		this.add(AssecheHaut);
 		this.add(AssecheBas);
 		this.add(Asseche);
 		this.add(AssecheGauche);
 		this.add(AssecheDroite);
-		this.add(Abandon);
-		JButton osef = new JButton("t");
+		JButton abandon = new JButton("Abandonner");
+		this.add(abandon);
 		Controleur ctrl = new Controleur(modele);
-		/** Enregistrement du contrôleur comme auditeur du bouton. */
+		/** Enregistrement du contrÃ´leur comme auditeur du bouton. */
 		AssecheHaut.addActionListener(ctrl);
 		AssecheBas.addActionListener(ctrl);
 		Asseche.addActionListener(ctrl);
@@ -667,11 +706,11 @@ class VueCommandes extends JPanel {
 		AssecheBas.addKeyListener(ctrl);
 		Asseche.addKeyListener(ctrl);
 		AssecheGauche.addKeyListener(ctrl);
-		Abandon.addActionListener(ctrl);
+		abandon.addActionListener(ctrl);
 		
 		/**
-		 * Variante : une lambda-expression qui évite de créer une classe
-	         * spécifique pour un contrôleur simplissime.
+		 * Variante : une lambda-expression qui Ã©vite de crÃ©er une classe
+	         * spÃ©cifique pour un contrÃ´leur simplissime.
 	         *
 	         JButton boutonAvance = new JButton(">");
 	         this.add(boutonAvance);
@@ -684,26 +723,26 @@ class VueCommandes extends JPanel {
 /** Fin de la vue. */
 
 /**
- * Classe pour notre contrôleur rudimentaire.
+ * Classe pour notre contrÃ´leur rudimentaire.
  *
- * Le contrôleur implémente l'interface [ActionListener] qui demande
- * uniquement de fournir une méthode [actionPerformed] indiquant la
- * réponse du contrôleur à la réception d'un événement.
+ * Le contrÃ´leur implÃ©mente l'interface [ActionListener] qui demande
+ * uniquement de fournir une mÃ©thode [actionPerformed] indiquant la
+ * rÃ©ponse du contrÃ´leur Ã  la rÃ©ception d'un Ã©vÃ©nement.
  */
 class Controleur implements ActionListener, KeyListener {
     /**
-     * On garde un pointeur vers le modèle, car le contrôleur doit
-     * provoquer un appel de méthode du modèle.
+     * On garde un pointeur vers le modÃ¨le, car le contrÃ´leur doit
+     * provoquer un appel de mÃ©thode du modÃ¨le.
      * Remarque : comme cette classe est interne, cette inscription
-     * explicite du modèle est inutile. On pourrait se contenter de
-     * faire directement référence au modèle enregistré pour la classe
+     * explicite du modÃ¨le est inutile. On pourrait se contenter de
+     * faire directement rÃ©fÃ©rence au modÃ¨le enregistrÃ© pour la classe
      * englobante [VueCommandes].
      */
     CModele modele;
     public Controleur(CModele modele) { this.modele = modele; }
 
     public void keyPressed(KeyEvent e) {
-    	if (modele.victoire()) return;
+    	if (modele.victoire() || modele.defaite()) return;
 		int keyCode = e.getKeyCode();
 		switch (keyCode) {
 		case KeyEvent.VK_UP:
@@ -739,49 +778,50 @@ class Controleur implements ActionListener, KeyListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (modele.victoire()) return;
+		if (modele.victoire() || modele.defaite()) return;
 		String actionCode = e.getActionCommand();
 		switch (actionCode) {
-		case "h":
+		case "â¬†":
 			modele.asseche(KeyEvent.VK_UP);
 			break;
-		case "b":
+		case "â¬‡":
 			modele.asseche(KeyEvent.VK_DOWN);
 			break;
-		case "d":
+		case "âž¡":
 			modele.asseche(KeyEvent.VK_RIGHT);
 			break;
-		case "g":
+		case "â¬…":
 			modele.asseche(KeyEvent.VK_LEFT);
 			break;
-		case "o":
+		case "âš«":
 			modele.asseche(KeyEvent.VK_ENTER);
 			break;
 		case "Abandonner":
-			modele.abandon = true;
+			modele.defaite = true;
+			break;
 		}
 		
 	}
 }
 
-/** Fin du contrôleur. */
+/** Fin du contrÃ´leur. */
 
 class CVueMenu {
     public static int resultat;
 	/**
-     * JFrame est une classe fournie pas Swing. Elle représente la fenêtre
+     * JFrame est une classe fournie pas Swing. Elle reprÃ©sente la fenÃªtre
      * de l'application graphique.
      */
     private JFrame frame;
     /**
-     * VueGrille et VueCommandes sont deux classes définies plus loin, pour
+     * VueGrille et VueCommandes sont deux classes dÃ©finies plus loin, pour
      * nos deux parties de l'interface graphique.
      */
     private VueMenu grille;
     private VueCommandesMenu commandes;
-    /** Construction d'une vue attachée à un modèle. */
+    /** Construction d'une vue attachÃ©e Ã  un modÃ¨le. */
     public CVueMenu() {
-	/** Définition de la fenêtre principale. */
+	/** DÃ©finition de la fenÃªtre principale. */
     resultat = 0;
 	frame = new JFrame();
 	frame.setLayout(new BorderLayout());
@@ -800,25 +840,25 @@ class CVueMenu {
     frame.add(img, BorderLayout.PAGE_START);
     
     /**
-	 * On précise un mode pour disposer les différents éléments à
-	 * l'intérieur de la fenêtre. Quelques possibilités sont :
-	 *  - BorderLayout (défaut pour la classe JFrame) : chaque élément est
-	 *    disposé au centre ou le long d'un bord.
-	 *  - FlowLayout (défaut pour un JPanel) : les éléments sont disposés
-	 *    l'un à la suite de l'autre, dans l'ordre de leur ajout, les lignes
-	 *    se formant de gauche à droite et de haut en bas. Un élément peut
-	 *    passer à la ligne lorsque l'on redimensionne la fenêtre.
-	 *  - GridLayout : les éléments sont disposés l'un à la suite de
+	 * On prÃ©cise un mode pour disposer les diffÃ©rents Ã©lÃ©ments Ã 
+	 * l'intÃ©rieur de la fenÃªtre. Quelques possibilitÃ©s sont :
+	 *  - BorderLayout (dÃ©faut pour la classe JFrame) : chaque Ã©lÃ©ment est
+	 *    disposÃ© au centre ou le long d'un bord.
+	 *  - FlowLayout (dÃ©faut pour un JPanel) : les Ã©lÃ©ments sont disposÃ©s
+	 *    l'un Ã  la suite de l'autre, dans l'ordre de leur ajout, les lignes
+	 *    se formant de gauche Ã  droite et de haut en bas. Un Ã©lÃ©ment peut
+	 *    passer Ã  la ligne lorsque l'on redimensionne la fenÃªtre.
+	 *  - GridLayout : les Ã©lÃ©ments sont disposÃ©s l'un Ã  la suite de
 	 *    l'autre sur une grille avec un nombre de lignes et un nombre de
-	 *    colonnes définis par le programmeur, dont toutes les cases ont la
-	 *    même dimension. Cette dimension est calculée en fonction du
-	 *    nombre de cases à placer et de la dimension du contenant.
+	 *    colonnes dÃ©finis par le programmeur, dont toutes les cases ont la
+	 *    mÃªme dimension. Cette dimension est calculÃ©e en fonction du
+	 *    nombre de cases Ã  placer et de la dimension du contenant.
 	 */
 	
 	//frame.setLayout(new BorderLayout());
 
 
-	/** Définition des deux vues et ajout à la fenêtre. */
+	/** DÃ©finition des deux vues et ajout Ã  la fenÃªtre. */
 	VueMenu menu = new VueMenu();
 	frame.add(menu);
 	VueCommandesMenu commandes = new VueCommandesMenu();
@@ -831,20 +871,20 @@ class CVueMenu {
     frame.add(position, BorderLayout.CENTER);
 	
 	/**
-	 * Remarque : on peut passer à la méthode [add] des paramètres
-	 * supplémentaires indiquant où placer l'élément. Par exemple, si on
-	 * avait conservé la disposition par défaut [BorderLayout], on aurait
-	 * pu écrire le code suivant pour placer la grille à gauche et les
-	 * commandes à droite.
+	 * Remarque : on peut passer Ã  la mÃ©thode [add] des paramÃ¨tres
+	 * supplÃ©mentaires indiquant oÃ¹ placer l'Ã©lÃ©ment. Par exemple, si on
+	 * avait conservÃ© la disposition par dÃ©faut [BorderLayout], on aurait
+	 * pu Ã©crire le code suivant pour placer la grille Ã  gauche et les
+	 * commandes Ã  droite.
 	 *     frame.add(grille, BorderLayout.WEST);
 	 *     frame.add(commandes, BorderLayout.EAST);
 	 */
 
 	/**
 	 * Fin de la plomberie :
-	 *  - Ajustement de la taille de la fenêtre en fonction du contenu.
-	 *  - Indiquer qu'on quitte l'application si la fenêtre est fermée.
-	 *  - Préciser que la fenêtre doit bien apparaître à l'écran.
+	 *  - Ajustement de la taille de la fenÃªtre en fonction du contenu.
+	 *  - Indiquer qu'on quitte l'application si la fenÃªtre est fermÃ©e.
+	 *  - PrÃ©ciser que la fenÃªtre doit bien apparaÃ®tre Ã  l'Ã©cran.
 	 */
 	frame.pack();
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -861,15 +901,15 @@ class CVueMenu {
 
 
 class VueMenu extends JPanel implements Observer {
-    /** On maintient une référence vers le modèle. */
-    /** Définition d'une taille (en pixels) pour l'affichage des cellules. */
+    /** On maintient une rÃ©fÃ©rence vers le modÃ¨le. */
+    /** DÃ©finition d'une taille (en pixels) pour l'affichage des cellules. */
     private final static int TAILLE = 20;
 
     /** Constructeur. */
     public VueMenu() {
 	/**
-	 * Définition et application d'une taille fixe pour cette zone de
-	 * l'interface, calculée en fonction du nombre de cellules et de la
+	 * DÃ©finition et application d'une taille fixe pour cette zone de
+	 * l'interface, calculÃ©e en fonction du nombre de cellules et de la
 	 * taille d'affichage.
 	 */
 	Dimension dim = new Dimension(TAILLE*CModele.LARGEUR,
@@ -878,27 +918,27 @@ class VueMenu extends JPanel implements Observer {
     }
 
     /**
-     * L'interface [Observer] demande de fournir une méthode [update], qui
-     * sera appelée lorsque la vue sera notifiée d'un changement dans le
-     * modèle. Ici on se content de réafficher toute la grille avec la méthode
-     * prédéfinie [repaint].
+     * L'interface [Observer] demande de fournir une mÃ©thode [update], qui
+     * sera appelÃ©e lorsque la vue sera notifiÃ©e d'un changement dans le
+     * modÃ¨le. Ici on se content de rÃ©afficher toute la grille avec la mÃ©thode
+     * prÃ©dÃ©finie [repaint].
      */
     public void update() { repaint(); }
 
     /**
-     * Les éléments graphiques comme [JPanel] possèdent une méthode
-     * [paintComponent] qui définit l'action à accomplir pour afficher cet
-     * élément. On la redéfinit ici pour lui confier l'affichage des cellules.
+     * Les Ã©lÃ©ments graphiques comme [JPanel] possÃ¨dent une mÃ©thode
+     * [paintComponent] qui dÃ©finit l'action Ã  accomplir pour afficher cet
+     * Ã©lÃ©ment. On la redÃ©finit ici pour lui confier l'affichage des cellules.
      *
-     * La classe [Graphics] regroupe les éléments de style sur le dessin,
+     * La classe [Graphics] regroupe les Ã©lÃ©ments de style sur le dessin,
      * comme la couleur actuelle.
      */
     /**
      * Fonction auxiliaire de dessin d'une cellule.
-     * Ici, la classe [Cellule] ne peut être désignée que par l'intermédiaire
-     * de la classe [CModele] à laquelle elle est interne, d'où le type
+     * Ici, la classe [Cellule] ne peut Ãªtre dÃ©signÃ©e que par l'intermÃ©diaire
+     * de la classe [CModele] Ã  laquelle elle est interne, d'oÃ¹ le type
      * [CModele.Cellule].
-     * Ceci serait impossible si [Cellule] était déclarée privée dans [CModele].
+     * Ceci serait impossible si [Cellule] Ã©tait dÃ©clarÃ©e privÃ©e dans [CModele].
      */
         /** Coloration d'un rectangle. */
     
@@ -912,18 +952,18 @@ class VueMenu extends JPanel implements Observer {
 class VueCommandesMenu extends JPanel {
     /**
      * Pour que le bouton puisse transmettre ses ordres, on garde une
-     * référence au modèle.
+     * rÃ©fÃ©rence au modÃ¨le.
      */
     /** Constructeur. */
     public VueCommandesMenu() {
 		/**
-		 * On crée un nouveau bouton, de classe [JButton], en précisant le
-		 * texte qui doit l'étiqueter.
+		 * On crÃ©e un nouveau bouton, de classe [JButton], en prÃ©cisant le
+		 * texte qui doit l'Ã©tiqueter.
 		 * Puis on ajoute ce bouton au panneau [this].
 		 */
         JPanel boutons = new JPanel();
     	boutons.setLayout(new BoxLayout(boutons, BoxLayout.LINE_AXIS));
-        boutons.add(new JLabel("Combien d'aventuriers partiront en expédition? "));
+        boutons.add(new JLabel("Combien d'aventuriers partiront en expÃ©dition? "));
         JPanel bouton = new JPanel();
     	
 		JButton deuxJoueurs = new JButton("2");
@@ -938,7 +978,7 @@ class VueCommandesMenu extends JPanel {
 		
 		this.add(boutons, BorderLayout.NORTH);
 		ControleurMenu ctrlM = new ControleurMenu();
-		/** Enregistrement du contrôleur comme auditeur du bouton. */
+		/** Enregistrement du contrÃ´leur comme auditeur du bouton. */
 		deuxJoueurs.addActionListener(ctrlM);
 		troisJoueurs.addActionListener(ctrlM);
 		quatreJoueurs.addActionListener(ctrlM);
@@ -954,11 +994,11 @@ class VueCommandesMenu extends JPanel {
 
 class ControleurMenu implements ActionListener{
     /**
-     * On garde un pointeur vers le modèle, car le contrôleur doit
-     * provoquer un appel de méthode du modèle.
+     * On garde un pointeur vers le modÃ¨le, car le contrÃ´leur doit
+     * provoquer un appel de mÃ©thode du modÃ¨le.
      * Remarque : comme cette classe est interne, cette inscription
-     * explicite du modèle est inutile. On pourrait se contenter de
-     * faire directement référence au modèle enregistré pour la classe
+     * explicite du modÃ¨le est inutile. On pourrait se contenter de
+     * faire directement rÃ©fÃ©rence au modÃ¨le enregistrÃ© pour la classe
      * englobante [VueCommandes].
      */
     public ControleurMenu() { }
@@ -986,4 +1026,4 @@ class ControleurMenu implements ActionListener{
 	}
 }
 
-/** Fin du contrôleur. */
+/** Fin du contrÃ´leur. */
