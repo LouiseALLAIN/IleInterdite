@@ -13,3 +13,5 @@ Danse cette partie, nous avons créé le modèle réduit de l'île avec ses zone
 ## 2. Noooon, pas la trempette !
 
 ### Fonctionnalités implémentées
+
+Nous avons créé la classe Joueur qui implémente chaque joueur et les avons placé dans un tableau de la taille du nombre de joueurs (entre 2 et 4). Nous avons adapté la vue pour que les joueurs soient visibles et leur avons permis de se déplacer et de récupérer des artéfact grâce au clavier, ainsi que d'assécher une zone grâce à des boutons. Nous avons aussi supprimé le bouton "fin de tour" que nous avons remplacé par la touche "Enter", de plus, lorsqu'un joueur a effectué ses 3 actions, les actions de fin de tour se produisent automatiquement. Nous avons enfin modifié la vue pour qu'elle indique le joueur dont c'est le tour, le nombre de joueurs ainsi que le nombre d'actions restantes.
