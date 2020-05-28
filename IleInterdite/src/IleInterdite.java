@@ -579,6 +579,9 @@ class VueGrille extends JPanel implements Observer {
         
         ImageIcon i7 = new ImageIcon("eau.png");
         Image submergé = i7.getImage();
+        
+        ImageIcon i8 = new ImageIcon("joueur.png");
+        Image player = i8.getImage();
     
     	
     	
@@ -594,8 +597,9 @@ class VueGrille extends JPanel implements Observer {
 	if(c.type == elements.heliport) g.drawImage(heliport, x, y, TAILLE, TAILLE, null);
 	//if(c.type != elements.autre) g.fillOval(x, y, TAILLE, TAILLE);
 	if(c.presenceJoueur) {
-		g.setColor(Color.BLACK);
-		g.fillOval(x+5,  y+5,  TAILLE-10, TAILLE-10);
+		/*g.setColor(Color.BLACK);
+		g.fillOval(x+5,  y+5,  TAILLE-10, TAILLE-10);*/
+		g.drawImage(player, x, y, TAILLE, TAILLE, null);
 	}
         /** Coloration d'un rectangle. */
     }
