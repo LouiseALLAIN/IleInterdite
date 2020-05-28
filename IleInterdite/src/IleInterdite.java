@@ -574,10 +574,10 @@ class VueGrille extends JPanel implements Observer {
         ImageIcon i5 = new ImageIcon("herbef.png");
         Image herbe = i5.getImage();
         
-        ImageIcon i6 = new ImageIcon("eauf.png");
+        ImageIcon i6 = new ImageIcon("water.png");
         Image inondé = i6.getImage();
         
-        ImageIcon i7 = new ImageIcon("subf.png");
+        ImageIcon i7 = new ImageIcon("eau.png");
         Image submergé = i7.getImage();
     
     	
@@ -585,13 +585,13 @@ class VueGrille extends JPanel implements Observer {
         /** Sélection d'une couleur. */
 	if (c.etat == etat.normale) g.drawImage(terre, x, y, TAILLE, TAILLE, null); 
 	else if (c.etat == etat.inondee) g.drawImage(inondé, x, y, TAILLE, TAILLE, null);
-	else g.drawImage(submergé, x+3, y+3, TAILLE-5, TAILLE-5, null);
+	else g.drawImage(submergé, x, y, TAILLE, TAILLE, null);
 	//g.fillRect(x, y, TAILLE, TAILLE);
-	if(c.type == elements.eau) g.drawImage(eau, x+2, y+2, TAILLE-3, TAILLE-3, null);
-	if(c.type == elements.air) g.drawImage(air, x+2, y+2, TAILLE-3, TAILLE-3, null);
-	if(c.type == elements.feu) g.drawImage(feu, x+2, y+2, TAILLE-3, TAILLE-3, null);
-	if(c.type == elements.terre) g.drawImage(herbe, x+2, y+2, TAILLE-3, TAILLE-3, null);
-	if(c.type == elements.heliport) g.drawImage(heliport, x+2, y+2, TAILLE-3, TAILLE-3, null);
+	if(c.type == elements.eau) g.drawImage(eau, x, y, TAILLE, TAILLE, null);
+	if(c.type == elements.air) g.drawImage(air, x, y, TAILLE, TAILLE, null);
+	if(c.type == elements.feu) g.drawImage(feu, x, y, TAILLE, TAILLE, null);
+	if(c.type == elements.terre) g.drawImage(herbe, x, y, TAILLE, TAILLE, null);
+	if(c.type == elements.heliport) g.drawImage(heliport, x, y, TAILLE, TAILLE, null);
 	//if(c.type != elements.autre) g.fillOval(x, y, TAILLE, TAILLE);
 	if(c.presenceJoueur) {
 		g.setColor(Color.BLACK);
