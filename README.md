@@ -2,7 +2,7 @@ PROJET ILE INTERDITE
 ========
 ## Sommaire
 * [1. On va se la couler douce](#1.-On-va-se-la-couler-douce)
-* [2. Noooon, pas la trempette !](#2.-Noooon,-pas-la-trempette !)
+* [2. Noooon, pas la trempette !](#2.-Noooon,-pas-la-trempette-!)
 
 ## 1. On va se la couler douce
 
