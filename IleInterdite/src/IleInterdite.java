@@ -6,7 +6,7 @@ import java.io.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-
+import javax.sound.sampled.*;
 
 
 /**
@@ -773,6 +773,7 @@ class Controleur implements ActionListener, KeyListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		
 		if (modele.victoire()) return;
 		String actionCode = e.getActionCommand();
 		switch (actionCode) {
@@ -796,6 +797,7 @@ class Controleur implements ActionListener, KeyListener {
 		}
 		
 	}
+	
 }
 
 /** Fin du contrôleur. */
@@ -863,6 +865,8 @@ class CVueMenu {
     position.add(text, BorderLayout.CENTER);
     position.add(bouton);
     frame.add(position, BorderLayout.CENTER);
+	music("music.wav");
+	
 	
 	/**
 	 * Remarque : on peut passer à la méthode [add] des paramètres
@@ -887,6 +891,31 @@ class CVueMenu {
 		frame.dispose();
 	}
     }
+	private void music(String filepath) {			
+			try {
+				File musicPath = new File(filepath);
+				if(musicPath.exists()) {
+					
+
+					AudioInputStream audioIn = AudioSystem.getAudioInputStream(musicPath);
+					Clip clip = AudioSystem.getClip(); 
+					clip.open(audioIn); 
+					clip.start(); 
+					clip.loop(clip.LOOP_CONTINUOUSLY);
+					
+					
+				/*AudioInputStream audioInput = AudioSystem.getAudioInputStream(new BufferedInputStream(new FileInputStream(musicPath)));
+				Clip clip = AudioSystem.getClip();
+				clip.start();*/
+				}else {
+					System.out.println("error");
+				}
+			}
+			catch(Exception error) {
+				error.printStackTrace();
+			}
+		}
+		
 }
 
 
