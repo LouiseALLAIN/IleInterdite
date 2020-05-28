@@ -264,6 +264,10 @@ class CModele extends Observable {
 			else if (b < 0.75) joueurs[tour].cleFeu +=1;
 			else joueurs[tour].cleTerre +=1;
 		}
+		else if (a < 0.4) {
+			if (b < 0.5) joueurs[tour].helicoptere+=1;
+			else joueurs[tour].sacSable+=1;
+		}
 		tour=(tour+1)%nbJoueurs;
 		joueurs[tour].nbActions = 0;
 		/**
@@ -300,27 +304,19 @@ class CModele extends Observable {
 	    	notifyObservers();
     }
     
-    public void asseche(int k) {
-    	if(k == KeyEvent.VK_RIGHT && cellules[joueurs[tour].x+1][joueurs[tour].y].etat == etat.inondee && joueurs[tour].x+1 <= LARGEUR) {
-    		cellules[joueurs[tour].x+1][joueurs[tour].y].etat = etat.normale;
-    		joueurs[tour].nbActions+=1;
+    public void asseche(boolean sac, int x, int y) {
+    	if (!sac) {
+	    	if(cellules[x][y].etat == etat.inondee && x <= LARGEUR && x > 0 && y <= HAUTEUR && y > 0) {
+	    		cellules[x][y].etat = etat.normale;
+	    		joueurs[tour].nbActions+=1;
+	    	}
     	}
-		else if(k == KeyEvent.VK_LEFT && cellules[joueurs[tour].x-1][joueurs[tour].y].etat == etat.inondee && joueurs[tour].x-1 > 0) {
-			cellules[joueurs[tour].x-1][joueurs[tour].y].etat = etat.normale;
-    		joueurs[tour].nbActions+=1;
-		}
-		else if(k == KeyEvent.VK_UP && cellules[joueurs[tour].x][joueurs[tour].y-1].etat == etat.inondee && joueurs[tour].y-1 > 0) {
-			cellules[joueurs[tour].x][joueurs[tour].y-1].etat = etat.normale;
-    		joueurs[tour].nbActions+=1;
-		}
-		else if (k == KeyEvent.VK_DOWN && cellules[joueurs[tour].x][joueurs[tour].y+1].etat == etat.inondee && joueurs[tour].y+1 <= HAUTEUR) {
-			cellules[joueurs[tour].x][joueurs[tour].y+1].etat = etat.normale;
-    		joueurs[tour].nbActions+=1;
-		}
-		else if (k == KeyEvent.VK_ENTER && cellules[joueurs[tour].x][joueurs[tour].y].etat == etat.inondee) {
-			cellules[joueurs[tour].x][joueurs[tour].y].etat = etat.normale;
-    		joueurs[tour].nbActions+=1;
-		}
+    	else {
+    		if (joueurs[tour].sacSable > 0 && cellules[x][y].etat == etat.inondee) {
+    			cellules[x][y].etat = etat.normale;
+    			joueurs[tour].sacSable-=1;
+    		}
+    	}
     	if (joueurs[tour].nbActions == 3) {
     		avance();
     	}
@@ -445,6 +441,23 @@ class CModele extends Observable {
     	
     }
     
+    public void prendreHelicoptere(int xDestination, int yDestination) {
+    	cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+    	if(joueurs[tour].helicoptere > 0 && cellules[xDestination][yDestination].etat != etat.submergee) {
+    		for (int i = 0; i < nbJoueurs; i++) {
+    			if (i != tour && joueurs[i].x == joueurs[tour].x && joueurs[i].y == joueurs[tour].y) {
+    				joueurs[i].x = xDestination;
+    	    		joueurs[i].y = yDestination;
+    			}
+    		}
+    		joueurs[tour].x = xDestination;
+    		joueurs[tour].y = yDestination;
+    		joueurs[tour].helicoptere-=1;
+    	}
+    	cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = true;
+    	notifyObservers();
+    }
+    
 
 
     /**
@@ -490,6 +503,8 @@ class Joueur{
 	public int cleFeu;
 	public int cleAir;
 	public int cleTerre;
+	public int helicoptere;
+	public int sacSable;
 	public int x, y;
 	public int nbActions;
 	
@@ -508,6 +523,8 @@ class Joueur{
 		cleFeu = 0;
 		cleTerre = 0;
 		cleAir = 0;
+		helicoptere = 0;
+		sacSable = 0;
 	}
 }  
 
@@ -619,6 +636,8 @@ class VueGrille extends JPanel implements Observer {
 				      TAILLE*CModele.HAUTEUR);
 	this.setPreferredSize(dim);
 	this.add(fin);
+	Controleur ctrl = new Controleur(modele);
+	this.addMouseListener(ctrl);
     }
 
     /**
@@ -754,7 +773,9 @@ class VuePlayer extends JPanel implements Observer {
   				modele.getJoueurs()[i].cleEau + " Clés eau, " + 
   				modele.getJoueurs()[i].cleAir + " Clés air, " + 
   				modele.getJoueurs()[i].cleFeu + " Clés feu, " + 
-  				modele.getJoueurs()[i].cleTerre + " Clés terre" ));
+  				modele.getJoueurs()[i].cleTerre + " Clés terre, " +
+  				modele.getJoueurs()[i].helicoptere + " Hélicoptères, " +
+  				modele.getJoueurs()[i].sacSable + " Sacs de sable "));
   	}
   	this.add(value0);
   	this.add(value1);
@@ -773,7 +794,9 @@ class VuePlayer extends JPanel implements Observer {
       				modele.getJoueurs()[i].cleEau + " Clés eau, " + 
       				modele.getJoueurs()[i].cleAir + " Clés air, " + 
       				modele.getJoueurs()[i].cleFeu + " Clés feu, " + 
-      				modele.getJoueurs()[i].cleTerre + " Clés terre" ));
+      				modele.getJoueurs()[i].cleTerre + " Clés terre, " + 
+      				modele.getJoueurs()[i].helicoptere + " Hélicoptères, " +
+      				modele.getJoueurs()[i].sacSable + " Sacs de sable "));
       	}
       	if(modele.artefacts[0] != -1) value0 = new JLabel("Artéfact d'eau possédé par Joueur " + modele.artefacts[0]);
       	if(modele.artefacts[1] != -1) value1 = new JLabel("Artéfact d'air possédé par Joueur " + modele.artefacts[1]);
@@ -855,7 +878,7 @@ class VueCommandes extends JPanel {
  * uniquement de fournir une méthode [actionPerformed] indiquant la
  * réponse du contrôleur à la réception d'un événement.
  */
-class Controleur implements ActionListener, KeyListener {
+class Controleur implements ActionListener, KeyListener, MouseListener {
     /**
      * On garde un pointeur vers le modèle, car le contrôleur doit
      * provoquer un appel de méthode du modèle.
@@ -965,24 +988,69 @@ class Controleur implements ActionListener, KeyListener {
 		String actionCode = e.getActionCommand();
 		switch (actionCode) {
 		case "h":
-			modele.asseche(KeyEvent.VK_UP);
+			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x, modele.getJoueurs()[modele.getTour()].y-1);
 			break;
 		case "b":
-			modele.asseche(KeyEvent.VK_DOWN);
+			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x, modele.getJoueurs()[modele.getTour()].y+1);
 			break;
 		case "d":
-			modele.asseche(KeyEvent.VK_RIGHT);
+			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x+1, modele.getJoueurs()[modele.getTour()].y);
 			break;
 		case "g":
-			modele.asseche(KeyEvent.VK_LEFT);
+			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x-1, modele.getJoueurs()[modele.getTour()].y);;
 			break;
 		case "o":
-			modele.asseche(KeyEvent.VK_ENTER);
+			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x, modele.getJoueurs()[modele.getTour()].y);
 			break;
 		case "Abandonner":
 			modele.abandon = true;
 			break;
 		}
+		
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent m) {
+		int mouseCode = m.getButton();
+		switch (mouseCode) {
+		case MouseEvent.BUTTON1:
+			modele.prendreHelicoptere(m.getX()/40+1, m.getY()/40+1);
+			break;
+		case MouseEvent.BUTTON3:
+			modele.asseche(true, m.getX()/40+1, m.getY()/40+1);
+			break;
+		}
+		/**if(SwingUtilities.isLeftMouseButton(m)) {
+			System.out.println((m.getX()-1)/40 + " " + m.getY()/40);
+		}
+		else if(SwingUtilities.isRightMouseButton(m)) {
+			System.out.println("ok");
+			
+		}**/
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent arg0) {
+		// TODO Auto-generated method stub
 		
 	}
 }
