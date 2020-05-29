@@ -1,12 +1,14 @@
-﻿
 import java.util.*;
+import java.util.List;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 
-import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.*;
-import javax.sound.sampled.*;
 
 
 /**
@@ -102,14 +104,22 @@ public class IleInterdite {
 class CModele extends Observable {
     /** On fixe la taille de la grille. */
     public static final int HAUTEUR=10, LARGEUR=15;
-	boolean abandon = false;
     /** On stocke un tableau de cellules. */
     private Cellule[][] cellules;
     public int nbJoueurs;
     private Joueur[] joueurs;
     private int tour;
     int[] artefacts = new int[4];
-
+    //boolean defaite = false;
+    boolean abandon = false;
+    /*boolean heliportRecouvert = false;
+    boolean manaAirRecouvert = false;
+    boolean manaTerreRecouvert = false;
+    boolean manaFeuRecouvert = false;
+    boolean manaEauRecouvert = false;*/
+    //boolean joueurCoince = false;
+    boolean[] joueursCoinces = new boolean[4];
+    
     public Joueur[] getJoueurs() {
 		return joueurs;
 	}
@@ -124,10 +134,16 @@ class CModele extends Observable {
 	 * Pour éviter les problèmes aux bords, on ajoute une ligne et une
 	 * colonne de chaque côté, dont les cellules n'évolueront pas.
 	 */ 
+    	/*for (int i = 0; i < nbJoueurs; i++) {
+    		joueursCoinces[i] = false;
+    	}*/
     	for (int i = 0; i < 4; i++) {
     		artefacts[i] = -1;
     	}
     	this.nbJoueurs = nbJoueurs;
+    	for (int i = 0; i < nbJoueurs; i++) {
+    		joueursCoinces[i] = false;
+    	}
     	joueurs = new Joueur[nbJoueurs];
     	int x = (int)(Math.random() * LARGEUR + 1);
     	int y = (int)(Math.random() * HAUTEUR + 1);
@@ -211,6 +227,39 @@ class CModele extends Observable {
 		else cellules[x1][y1].etat = etat.submergee;
 		if(cellules[x2][y2].etat == etat.normale) cellules[x2][y2].etat = etat.inondee;
 		else cellules[x2][y2].etat = etat.submergee;
+		for (int i = 0; i < nbJoueurs; i++) {
+			if (cellules[joueurs[i].x][joueurs[i].y].etat == etat.submergee) {
+				ArrayList<int[]> echapatoire = new ArrayList<int[]>();
+				int[] pos = new int[2];
+				if(cellules[joueurs[i].x-1][joueurs[i].y].etat != etat.submergee) {
+					pos[0] = joueurs[i].x-1;
+					pos[1] = joueurs[i].y;
+					echapatoire.add(pos);}
+				if(cellules[joueurs[i].x+1][joueurs[i].y].etat != etat.submergee) {
+					pos[0] = joueurs[i].x+1;
+					pos[1] = joueurs[i].y;
+					echapatoire.add(pos);
+				}
+				if(cellules[joueurs[i].x][joueurs[i].y-1].etat != etat.submergee) {
+					pos[0] = joueurs[i].x;
+					pos[1] = joueurs[i].y-1;
+					echapatoire.add(pos);
+				}
+				if(cellules[joueurs[i].x][joueurs[i].y+1].etat != etat.submergee) {
+					pos[0] = joueurs[i].x;
+					pos[1] = joueurs[i].y+1;
+					echapatoire.add(pos);
+				}
+				if (echapatoire.size() == 0) this.joueursCoinces[i] = true;
+				else {
+					cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = false;
+					int a = (int)(Math.random()*echapatoire.size());
+					joueurs[i].x = echapatoire.get(a)[0];
+					joueurs[i].y = echapatoire.get(a)[1];
+					cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = true;
+				}
+			}
+		}
 		double a = Math.random();
 		double b = Math.random();
 		if (a < 0.3) {
@@ -218,6 +267,10 @@ class CModele extends Observable {
 			else if (b < 0.5) joueurs[tour].cleAir +=1;
 			else if (b < 0.75) joueurs[tour].cleFeu +=1;
 			else joueurs[tour].cleTerre +=1;
+		}
+		else if (a < 0.4) {
+			if (b < 0.5) joueurs[tour].helicoptere+=1;
+			else joueurs[tour].sacSable+=1;
 		}
 		tour=(tour+1)%nbJoueurs;
 		joueurs[tour].nbActions = 0;
@@ -230,11 +283,22 @@ class CModele extends Observable {
     
     public void deplace(int k) {
 		cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
-		if(k == KeyEvent.VK_RIGHT && cellules[joueurs[tour].x+1][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x+1 <= LARGEUR) joueurs[tour].x+=1;
-		else if(k == KeyEvent.VK_LEFT && cellules[joueurs[tour].x-1][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x-1 > 0) joueurs[tour].x-=1;
-		else if(k == KeyEvent.VK_UP && cellules[joueurs[tour].x][joueurs[tour].y-1].etat != etat.submergee && joueurs[tour].y-1 > 0) joueurs[tour].y-=1;
-		else if (k == KeyEvent.VK_DOWN && cellules[joueurs[tour].x][joueurs[tour].y+1].etat != etat.submergee && joueurs[tour].y+1 <= HAUTEUR) joueurs[tour].y+=1;
-	    joueurs[tour].nbActions++;
+		if(k == KeyEvent.VK_RIGHT && cellules[joueurs[tour].x+1][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x+1 <= LARGEUR) {
+			joueurs[tour].x+=1;
+			joueurs[tour].nbActions++;
+		}
+		else if(k == KeyEvent.VK_LEFT && cellules[joueurs[tour].x-1][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x-1 > 0) {
+			joueurs[tour].x-=1;
+			joueurs[tour].nbActions++;
+		}
+		else if(k == KeyEvent.VK_UP && cellules[joueurs[tour].x][joueurs[tour].y-1].etat != etat.submergee && joueurs[tour].y-1 > 0) {
+			joueurs[tour].y-=1;
+			joueurs[tour].nbActions++;
+		}
+		else if (k == KeyEvent.VK_DOWN && cellules[joueurs[tour].x][joueurs[tour].y+1].etat != etat.submergee && joueurs[tour].y+1 <= HAUTEUR) {
+			joueurs[tour].y+=1;
+			joueurs[tour].nbActions++;
+		}
 	    for (int i = 0; i < nbJoueurs; i++) {
 	    	cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = true;
 	    }
@@ -244,27 +308,19 @@ class CModele extends Observable {
 	    	notifyObservers();
     }
     
-    public void asseche(int k) {
-    	if(k == KeyEvent.VK_RIGHT && cellules[joueurs[tour].x+1][joueurs[tour].y].etat == etat.inondee && joueurs[tour].x+1 <= LARGEUR) {
-    		cellules[joueurs[tour].x+1][joueurs[tour].y].etat = etat.normale;
-    		joueurs[tour].nbActions+=1;
+    public void asseche(boolean sac, int x, int y) {
+    	if (!sac) {
+	    	if(cellules[x][y].etat == etat.inondee && x <= LARGEUR && x > 0 && y <= HAUTEUR && y > 0) {
+	    		cellules[x][y].etat = etat.normale;
+	    		joueurs[tour].nbActions+=1;
+	    	}
     	}
-		else if(k == KeyEvent.VK_LEFT && cellules[joueurs[tour].x-1][joueurs[tour].y].etat == etat.inondee && joueurs[tour].x-1 > 0) {
-			cellules[joueurs[tour].x-1][joueurs[tour].y].etat = etat.normale;
-    		joueurs[tour].nbActions+=1;
-		}
-		else if(k == KeyEvent.VK_UP && cellules[joueurs[tour].x][joueurs[tour].y-1].etat == etat.inondee && joueurs[tour].y-1 > 0) {
-			cellules[joueurs[tour].x][joueurs[tour].y-1].etat = etat.normale;
-    		joueurs[tour].nbActions+=1;
-		}
-		else if (k == KeyEvent.VK_DOWN && cellules[joueurs[tour].x][joueurs[tour].y+1].etat == etat.inondee && joueurs[tour].y+1 <= HAUTEUR) {
-			cellules[joueurs[tour].x][joueurs[tour].y+1].etat = etat.normale;
-    		joueurs[tour].nbActions+=1;
-		}
-		else if (k == KeyEvent.VK_ENTER && cellules[joueurs[tour].x][joueurs[tour].y].etat == etat.inondee) {
-			cellules[joueurs[tour].x][joueurs[tour].y].etat = etat.normale;
-    		joueurs[tour].nbActions+=1;
-		}
+    	else {
+    		if (joueurs[tour].sacSable > 0 && cellules[x][y].etat == etat.inondee) {
+    			cellules[x][y].etat = etat.normale;
+    			joueurs[tour].sacSable-=1;
+    		}
+    	}
     	if (joueurs[tour].nbActions == 3) {
     		avance();
     	}
@@ -273,25 +329,25 @@ class CModele extends Observable {
     }
     
     public void recupere() {
-    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.eau && joueurs[tour].cleEau > 0) {
+    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.eau && joueurs[tour].cleEau >= 4) {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleEau = 0;
     		joueurs[tour].nbActions++;
     		artefacts[0] = tour+1;
     	}
-    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.air && joueurs[tour].cleAir > 0) {
+    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.air && joueurs[tour].cleAir >= 4) {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleAir = 0;
     		joueurs[tour].nbActions++;
     		artefacts[1] = tour+1;
     	}
-    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.feu && joueurs[tour].cleFeu > 0) {
+    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.feu && joueurs[tour].cleFeu >= 4) {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleFeu = 0;
     		joueurs[tour].nbActions++;
     		artefacts[2] = tour+1;
     	}
-    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.terre && joueurs[tour].cleTerre > 0) {
+    	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.terre && joueurs[tour].cleTerre >= 4) {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleTerre = 0;
     		joueurs[tour].nbActions++;
@@ -313,6 +369,98 @@ class CModele extends Observable {
     	return true;
     }
     
+    public int defaite() {
+    	/*if(this.manaAirRecouvert) return 1; 
+    	if(this.manaTerreRecouvert) return 2; 
+    	if(this.manaFeuRecouvert) return 3; 
+    	if(this.manaEauRecouvert) return 4; 
+    	if(this.abandon) return 5; 
+    	if(this.heliportRecouvert) return 6; 
+    	if(this.joueurCoince) return 7; 
+    	for (int i = 0; i < LARGEUR+1; i++) {
+    		for (int j = 0; j < HAUTEUR+1; j++) {
+    			if (cellules[i][j].type != elements.autre && cellules[i][j].etat == etat.submergee) return 8;
+    		}
+    	}*/
+    	
+    	if(this.abandon) return 5;
+    	for(int i = 0; i < nbJoueurs; i++) {
+    		if(this.joueursCoinces[i] == true) return 7+i; 
+    	}
+    	for (int i = 0; i < LARGEUR+1; i++) {
+    		for (int j = 0; j < HAUTEUR+1; j++) {
+    			if (cellules[i][j].type == elements.air && cellules[i][j].etat == etat.submergee) return 1;
+    		}
+    	}
+    	for (int i = 0; i < LARGEUR+1; i++) {
+    		for (int j = 0; j < HAUTEUR+1; j++) {
+    			if (cellules[i][j].type == elements.terre && cellules[i][j].etat == etat.submergee) return 2;
+    		}
+    	}
+    	for (int i = 0; i < LARGEUR+1; i++) {
+    		for (int j = 0; j < HAUTEUR+1; j++) {
+    			if (cellules[i][j].type == elements.feu && cellules[i][j].etat == etat.submergee) return 3;
+    		}
+    	}
+    	for (int i = 0; i < LARGEUR+1; i++) {
+    		for (int j = 0; j < HAUTEUR+1; j++) {
+    			if (cellules[i][j].type == elements.eau && cellules[i][j].etat == etat.submergee) return 4;
+    		}
+    	}
+    	for (int i = 0; i < LARGEUR+1; i++) {
+    		for (int j = 0; j < HAUTEUR+1; j++) {
+    			if (cellules[i][j].type == elements.heliport && cellules[i][j].etat == etat.submergee) return 6;
+    		}
+    	}
+    	return 0;
+    }
+    
+    public void echange(int j, elements e) {
+    	if (j != tour && joueurs[j].x == joueurs[tour].x && joueurs[j].y == joueurs[tour].y) {
+    		if (e == elements.eau && joueurs[tour].cleEau > 0) {
+    			joueurs[tour].cleEau--;
+    			joueurs[j].cleEau++;
+    			joueurs[tour].nbActions++;
+    		}
+    		else if (e == elements.air && joueurs[tour].cleAir > 0) {
+    			joueurs[tour].cleAir--;
+    			joueurs[j].cleAir++;
+    			joueurs[tour].nbActions++;
+    		}
+    		else if (e == elements.feu && joueurs[tour].cleFeu > 0) {
+    			joueurs[tour].cleFeu--;
+    			joueurs[j].cleFeu++;
+    			joueurs[tour].nbActions++;
+    		}
+    		else if (e == elements.terre && joueurs[tour].cleTerre > 0) {
+    			joueurs[tour].cleTerre--;
+    			joueurs[j].cleTerre++;
+    			joueurs[tour].nbActions++;
+    		}
+    	}
+    	if (joueurs[tour].nbActions == 3) {
+    		avance();
+    	}
+    	notifyObservers();
+    	
+    }
+    
+    public void prendreHelicoptere(int xDestination, int yDestination) {
+    	cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+    	if(joueurs[tour].helicoptere > 0 && cellules[xDestination][yDestination].etat != etat.submergee) {
+    		for (int i = 0; i < nbJoueurs; i++) {
+    			if (i != tour && joueurs[i].x == joueurs[tour].x && joueurs[i].y == joueurs[tour].y) {
+    				joueurs[i].x = xDestination;
+    	    		joueurs[i].y = yDestination;
+    			}
+    		}
+    		joueurs[tour].x = xDestination;
+    		joueurs[tour].y = yDestination;
+    		joueurs[tour].helicoptere-=1;
+    	}
+    	cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = true;
+    	notifyObservers();
+    }
     
 
 
@@ -323,10 +471,6 @@ class CModele extends Observable {
     public Cellule getCellule(int x, int y) {
 	return cellules[x][y];
     }
-
-	public boolean abandon() {
-		return this.abandon;
-	}
 }
 
 /** Fin de la classe CModele. */
@@ -363,6 +507,8 @@ class Joueur{
 	public int cleFeu;
 	public int cleAir;
 	public int cleTerre;
+	public int helicoptere;
+	public int sacSable;
 	public int x, y;
 	public int nbActions;
 	
@@ -381,6 +527,8 @@ class Joueur{
 		cleFeu = 0;
 		cleTerre = 0;
 		cleAir = 0;
+		helicoptere = 0;
+		sacSable = 0;
 	}
 }  
 
@@ -409,7 +557,7 @@ class CVue {
     public CVue(CModele modele) {
 	/** Définition de la fenêtre principale. */
 	frame = new JFrame();
-	frame.setTitle("L'île interdite");
+	frame.setTitle(" L'île interdite ");
 	JPanel text = new JPanel();
 	text.setLayout(new BoxLayout(text, BoxLayout.LINE_AXIS));
     text.add(new JLabel("Cliquer pour assécher une zone inondée"));
@@ -492,9 +640,9 @@ class VueGrille extends JPanel implements Observer {
 				      TAILLE*CModele.HAUTEUR);
 	this.setPreferredSize(dim);
 	this.add(fin);
+	Controleur ctrl = new Controleur(modele);
+	this.addMouseListener(ctrl);
     }
-   
-    
 
     /**
      * L'interface [Observer] demande de fournir une méthode [update], qui
@@ -507,20 +655,7 @@ class VueGrille extends JPanel implements Observer {
     public void paintComponent(Graphics g) {
 	super.repaint();
 	/** Pour chaque cellule... */
-	if(modele.abandon()) {
-		this.removeAll();
-		g.setColor(Color.WHITE);
-		g.fillRect(0,  0,  TAILLE*CModele.LARGEUR,
-				      TAILLE*CModele.HAUTEUR);
-		fin.setLayout(new BoxLayout(fin, BoxLayout.X_AXIS));
-		fin = new JLabel("ABANDON...");
-		Font font = new Font("Arial", Font.BOLD, 96);
-		fin.setFont(font);
-		this.add(fin);
-		this.validate();
-	}
-	
-	if(!modele.victoire()) {
+	if(!modele.victoire() && modele.defaite() == 0) {
 		for(int i=1; i<=CModele.LARGEUR; i++) {
 		    for(int j=1; j<=CModele.HAUTEUR; j++) {
 			/**
@@ -531,18 +666,67 @@ class VueGrille extends JPanel implements Observer {
 			paint(g, modele.getCellule(i, j), (i-1)*TAILLE, (j-1)*TAILLE);
 		    }
 		}
-	}else {
+		g.setColor(Color.WHITE);
+		for (int i = 0; i < modele.nbJoueurs; i++) {
+			g.drawString(Integer.toString(i+1), modele.getJoueurs()[i].x*TAILLE-23, modele.getJoueurs()[i].y*TAILLE-15);
+		}
+	}else if (modele.victoire()){
 		this.removeAll();
 		g.setColor(Color.WHITE);
 		g.fillRect(0,  0,  TAILLE*CModele.LARGEUR,
 				      TAILLE*CModele.HAUTEUR);
 		fin.setLayout(new BoxLayout(fin, BoxLayout.X_AXIS));
-		fin = new JLabel("VICTOIRE !");
+		fin = new JLabel("VICTOIRE");
 		Font font = new Font("Arial", Font.BOLD, 96);
 		fin.setFont(font);
 		this.add(fin);
 		this.validate();
+	}
+	else {
+		this.removeAll();
+		g.setColor(Color.WHITE);
+		g.fillRect(0,  0,  TAILLE*CModele.LARGEUR,
+				      TAILLE*CModele.HAUTEUR);
+		fin.setLayout(new BoxLayout(fin, BoxLayout.X_AXIS));
+		switch(modele.defaite()) {
+		case 1:
+			fin = new JLabel("Défaite : le mana d'air a été submergé !");
+			break;
+		case 2:
+			fin = new JLabel("Défaite : le mana de terre a été submergé !");
+			break;
+		case 3:
+			fin = new JLabel("Défaite : le mana de feu a été submergé !");
+			break;
+		case 4:
+			fin = new JLabel("Défaite : le mana d'eau a été submergé !");
+			break;
+		case 5:
+			fin = new JLabel("Abandon...");
+			break;
+		case 6:
+			fin = new JLabel("Défaite : L'héliport a été submergé !");
+			break;
+		case 7:
+			fin = new JLabel("Défaite : Joueur 1 est submergé et coincé !");
+			break;
+		case 8:
+			fin = new JLabel("Défaite : Joueur 2 est submergé et coincé !");
+			break;
+		case 9:
+			fin = new JLabel("Défaite : Joueur 3 est submergé et coincé !");
+			break;
+		case 10:
+			fin = new JLabel("Défaite : Joueur 4 est submergé et coincé !");
+			break;
+		}
 		
+		Font font = new Font("Arial", Font.BOLD, 25);
+		fin.setFont(font);
+		this.add(fin);
+		/*int a = modele.defaite();
+		this.add(new JLabel(String.valueOf(a)));*/
+		this.validate();
 	}
     }
     /**
@@ -554,54 +738,51 @@ class VueGrille extends JPanel implements Observer {
      */
     private void paint(Graphics g, Cellule c, int x, int y) {
     	
-   	 //importation des images
-        ImageIcon i = new ImageIcon("ground.png");
-        Image terre = i.getImage();
-        
-        ImageIcon i1 = new ImageIcon("airf.png");
-        Image air = i1.getImage();
-        
-        ImageIcon i2 = new ImageIcon("waterf.png");
-        Image eau = i2.getImage();
-        
-        ImageIcon i3 = new ImageIcon("feuf.png");
-        Image feu = i3.getImage();
-        
-        
-        ImageIcon i4 = new ImageIcon("heliportf.png");
-        Image heliport = i4.getImage();
-        
-        ImageIcon i5 = new ImageIcon("herbef.png");
-        Image herbe = i5.getImage();
-        
-        ImageIcon i6 = new ImageIcon("water.png");
-        Image inondé = i6.getImage();
-        
-        ImageIcon i7 = new ImageIcon("eau.png");
-        Image submergé = i7.getImage();
-        
-        ImageIcon i8 = new ImageIcon("joueur.png");
-        Image player = i8.getImage();
-    
-    	
-    	
-        /** Sélection d'une couleur. */
-	if (c.etat == etat.normale) g.drawImage(terre, x, y, TAILLE, TAILLE, null); 
-	else if (c.etat == etat.inondee) g.drawImage(inondé, x, y, TAILLE, TAILLE, null);
-	else g.drawImage(submergé, x, y, TAILLE, TAILLE, null);
-	//g.fillRect(x, y, TAILLE, TAILLE);
-	if(c.type == elements.eau) g.drawImage(eau, x, y, TAILLE, TAILLE, null);
-	if(c.type == elements.air) g.drawImage(air, x, y, TAILLE, TAILLE, null);
-	if(c.type == elements.feu) g.drawImage(feu, x, y, TAILLE, TAILLE, null);
-	if(c.type == elements.terre) g.drawImage(herbe, x, y, TAILLE, TAILLE, null);
-	if(c.type == elements.heliport) g.drawImage(heliport, x, y, TAILLE, TAILLE, null);
-	//if(c.type != elements.autre) g.fillOval(x, y, TAILLE, TAILLE);
-	if(c.presenceJoueur) {
-		/*g.setColor(Color.BLACK);
-		g.fillOval(x+5,  y+5,  TAILLE-10, TAILLE-10);*/
-		g.drawImage(player, x, y, TAILLE, TAILLE, null);
-	}
+      	 //importation des images
+           ImageIcon i = new ImageIcon("ground.png");
+           Image terre = i.getImage();
+           
+           ImageIcon i1 = new ImageIcon("airf.png");
+           Image air = i1.getImage();
+           
+           ImageIcon i2 = new ImageIcon("waterf.png");
+           Image eau = i2.getImage();
+           
+           ImageIcon i3 = new ImageIcon("feuf.png");
+           Image feu = i3.getImage();
+           
+           
+           ImageIcon i4 = new ImageIcon("heliportf.png");
+           Image heliport = i4.getImage();
+           
+           ImageIcon i5 = new ImageIcon("herbef.png");
+           Image herbe = i5.getImage();
+           
+           ImageIcon i6 = new ImageIcon("water.png");
+           Image inondé = i6.getImage();
+           
+           ImageIcon i7 = new ImageIcon("eau.png");
+           Image submergé = i7.getImage();
+           
+           ImageIcon i8 = new ImageIcon("joueur.png");
+           Image player = i8.getImage();
         /** Coloration d'un rectangle. */
+           /** Sélection d'une couleur. */
+       	if (c.etat == etat.normale) g.drawImage(terre, x, y, TAILLE, TAILLE, null); 
+       	else if (c.etat == etat.inondee) g.drawImage(inondé, x, y, TAILLE, TAILLE, null);
+       	else g.drawImage(submergé, x, y, TAILLE, TAILLE, null);
+       	//g.fillRect(x, y, TAILLE, TAILLE);
+       	if(c.type == elements.eau) g.drawImage(eau, x, y, TAILLE, TAILLE, null);
+       	if(c.type == elements.air) g.drawImage(air, x, y, TAILLE, TAILLE, null);
+       	if(c.type == elements.feu) g.drawImage(feu, x, y, TAILLE, TAILLE, null);
+       	if(c.type == elements.terre) g.drawImage(herbe, x, y, TAILLE, TAILLE, null);
+       	if(c.type == elements.heliport) g.drawImage(heliport, x, y, TAILLE, TAILLE, null);
+       	//if(c.type != elements.autre) g.fillOval(x, y, TAILLE, TAILLE);
+       	if(c.presenceJoueur) {
+       		/*g.setColor(Color.BLACK);
+       		g.fillOval(x+5,  y+5,  TAILLE-10, TAILLE-10);*/
+       		g.drawImage(player, x, y, TAILLE, TAILLE, null);
+       	}
     }
 }
 
@@ -626,7 +807,9 @@ class VuePlayer extends JPanel implements Observer {
   				modele.getJoueurs()[i].cleEau + " Clés eau, " + 
   				modele.getJoueurs()[i].cleAir + " Clés air, " + 
   				modele.getJoueurs()[i].cleFeu + " Clés feu, " + 
-  				modele.getJoueurs()[i].cleTerre + " Clés terre" ));
+  				modele.getJoueurs()[i].cleTerre + " Clés terre, " +
+  				modele.getJoueurs()[i].helicoptere + " Hélicoptères, " +
+  				modele.getJoueurs()[i].sacSable + " Sacs de sable "));
   	}
   	this.add(value0);
   	this.add(value1);
@@ -645,7 +828,9 @@ class VuePlayer extends JPanel implements Observer {
       				modele.getJoueurs()[i].cleEau + " Clés eau, " + 
       				modele.getJoueurs()[i].cleAir + " Clés air, " + 
       				modele.getJoueurs()[i].cleFeu + " Clés feu, " + 
-      				modele.getJoueurs()[i].cleTerre + " Clés terre" ));
+      				modele.getJoueurs()[i].cleTerre + " Clés terre, " + 
+      				modele.getJoueurs()[i].helicoptere + " Hélicoptères, " +
+      				modele.getJoueurs()[i].sacSable + " Sacs de sable "));
       	}
       	if(modele.artefacts[0] != -1) value0 = new JLabel("Artéfact d'eau possédé par Joueur " + modele.artefacts[0]);
       	if(modele.artefacts[1] != -1) value1 = new JLabel("Artéfact d'air possédé par Joueur " + modele.artefacts[1]);
@@ -685,14 +870,13 @@ class VueCommandes extends JPanel {
 		JButton Asseche = new JButton("o");
 		JButton AssecheGauche = new JButton("g");
 		JButton AssecheDroite = new JButton("d"); 
-		JButton Abandon = new JButton("Abandonner"); 
 		this.add(AssecheHaut);
 		this.add(AssecheBas);
 		this.add(Asseche);
 		this.add(AssecheGauche);
 		this.add(AssecheDroite);
-		this.add(Abandon);
-		JButton osef = new JButton("t");
+		JButton abandon = new JButton("Abandonner");
+		this.add(abandon);
 		Controleur ctrl = new Controleur(modele);
 		/** Enregistrement du contrôleur comme auditeur du bouton. */
 		AssecheHaut.addActionListener(ctrl);
@@ -705,7 +889,7 @@ class VueCommandes extends JPanel {
 		AssecheBas.addKeyListener(ctrl);
 		Asseche.addKeyListener(ctrl);
 		AssecheGauche.addKeyListener(ctrl);
-		Abandon.addActionListener(ctrl);
+		abandon.addActionListener(ctrl);
 		
 		/**
 		 * Variante : une lambda-expression qui évite de créer une classe
@@ -728,7 +912,7 @@ class VueCommandes extends JPanel {
  * uniquement de fournir une méthode [actionPerformed] indiquant la
  * réponse du contrôleur à la réception d'un événement.
  */
-class Controleur implements ActionListener, KeyListener {
+class Controleur implements ActionListener, KeyListener, MouseListener {
     /**
      * On garde un pointeur vers le modèle, car le contrôleur doit
      * provoquer un appel de méthode du modèle.
@@ -738,10 +922,17 @@ class Controleur implements ActionListener, KeyListener {
      * englobante [VueCommandes].
      */
     CModele modele;
-    public Controleur(CModele modele) { this.modele = modele; }
+    boolean[] j;
+    public Controleur(CModele modele) { 
+    	this.modele = modele; 
+    	j = new boolean[modele.nbJoueurs];
+    	for (int i = 0; i < modele.nbJoueurs; i++) {
+    		j[i] = false;
+    	}
+    }
 
     public void keyPressed(KeyEvent e) {
-    	if (modele.victoire()) return;
+    	if (modele.victoire() || modele.defaite() != 0) return;
 		int keyCode = e.getKeyCode();
 		switch (keyCode) {
 		case KeyEvent.VK_UP:
@@ -762,7 +953,57 @@ class Controleur implements ActionListener, KeyListener {
 		case KeyEvent.VK_SPACE:
 			modele.recupere();
 			break;
+		case KeyEvent.VK_E:
+			for (int i = 0; i < modele.nbJoueurs; i++) {
+				if (j[i]) {
+					modele.echange(i, elements.eau);
+					break;
+				}
+			}
+			break;
+		case KeyEvent.VK_A:
+			for (int i = 0; i < modele.nbJoueurs; i++) {
+				if (j[i]) {
+					modele.echange(i, elements.air);
+					break;
+				}
+			}
+			break;
+		case KeyEvent.VK_F:
+			for (int i = 0; i < modele.nbJoueurs; i++) {
+				if (j[i]) {
+					modele.echange(i, elements.feu);
+					break;
+				}
+			}
+			break;
+		case KeyEvent.VK_T:
+			for (int i = 0; i < modele.nbJoueurs; i++) {
+				if (j[i]) {
+					modele.echange(i, elements.terre);
+					break;
+				}
+			}
+			break;
 		}
+		for (int i = 0; i < modele.nbJoueurs; i++) {
+			j[i] = false;
+		}
+		switch(keyCode) {
+		case KeyEvent.VK_F1:
+			j[0] = true;
+			break;
+		case KeyEvent.VK_F2:
+			j[1] = true;
+			break;
+		case KeyEvent.VK_F3:
+			if (modele.nbJoueurs > 2) j[2] = true;
+			break;
+		case KeyEvent.VK_F4:
+			if(modele.nbJoueurs == 4) j[3] = true;
+			break;
+		}
+		
 	}
 	@Override
 	public void keyTyped(KeyEvent e) {
@@ -777,31 +1018,75 @@ class Controleur implements ActionListener, KeyListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		
-		if (modele.victoire()) return;
+		if (modele.victoire() || modele.defaite() != 0) return;
 		String actionCode = e.getActionCommand();
 		switch (actionCode) {
 		case "h":
-			modele.asseche(KeyEvent.VK_UP);
+			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x, modele.getJoueurs()[modele.getTour()].y-1);
 			break;
 		case "b":
-			modele.asseche(KeyEvent.VK_DOWN);
+			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x, modele.getJoueurs()[modele.getTour()].y+1);
 			break;
 		case "d":
-			modele.asseche(KeyEvent.VK_RIGHT);
+			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x+1, modele.getJoueurs()[modele.getTour()].y);
 			break;
 		case "g":
-			modele.asseche(KeyEvent.VK_LEFT);
+			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x-1, modele.getJoueurs()[modele.getTour()].y);;
 			break;
 		case "o":
-			modele.asseche(KeyEvent.VK_ENTER);
+			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x, modele.getJoueurs()[modele.getTour()].y);
 			break;
 		case "Abandonner":
 			modele.abandon = true;
+			break;
 		}
 		
 	}
-	
+
+	@Override
+	public void mouseClicked(MouseEvent m) {
+		int mouseCode = m.getButton();
+		switch (mouseCode) {
+		case MouseEvent.BUTTON1:
+			modele.prendreHelicoptere(m.getX()/40+1, m.getY()/40+1);
+			break;
+		case MouseEvent.BUTTON3:
+			modele.asseche(true, m.getX()/40+1, m.getY()/40+1);
+			break;
+		}
+		/**if(SwingUtilities.isLeftMouseButton(m)) {
+			System.out.println((m.getX()-1)/40 + " " + m.getY()/40);
+		}
+		else if(SwingUtilities.isRightMouseButton(m)) {
+			System.out.println("ok");
+			
+		}**/
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
 }
 
 /** Fin du contrôleur. */
@@ -830,7 +1115,7 @@ class CVueMenu {
     
     JPanel bouton = new JPanel();
   
-    ImageIcon icone = new ImageIcon("619.png");
+    ImageIcon icone = new ImageIcon("619.png");;
     
     Image image = icone.getImage();
     Image newimg = image.getScaledInstance(600, 350,  java.awt.Image.SCALE_SMOOTH);
@@ -871,7 +1156,6 @@ class CVueMenu {
     frame.add(position, BorderLayout.CENTER);
 	music("music.wav");
 	
-	
 	/**
 	 * Remarque : on peut passer à la méthode [add] des paramètres
 	 * supplémentaires indiquant où placer l'élément. Par exemple, si on
@@ -895,31 +1179,31 @@ class CVueMenu {
 		frame.dispose();
 	}
     }
-	private void music(String filepath) {			
-			try {
-				File musicPath = new File(filepath);
-				if(musicPath.exists()) {
-					
+    
+    private void music(String filepath) {			
+		try {
+			File musicPath = new File(filepath);
+			if(musicPath.exists()) {
+				
 
-					AudioInputStream audioIn = AudioSystem.getAudioInputStream(musicPath);
-					Clip clip = AudioSystem.getClip(); 
-					clip.open(audioIn); 
-					clip.start(); 
-					clip.loop(clip.LOOP_CONTINUOUSLY);
-					
-					
-				/*AudioInputStream audioInput = AudioSystem.getAudioInputStream(new BufferedInputStream(new FileInputStream(musicPath)));
-				Clip clip = AudioSystem.getClip();
-				clip.start();*/
-				}else {
-					System.out.println("error");
-				}
-			}
-			catch(Exception error) {
-				error.printStackTrace();
+				AudioInputStream audioIn = AudioSystem.getAudioInputStream(musicPath);
+				Clip clip = AudioSystem.getClip(); 
+				clip.open(audioIn); 
+				clip.start(); 
+				clip.loop(clip.LOOP_CONTINUOUSLY);
+				
+				
+			/*AudioInputStream audioInput = AudioSystem.getAudioInputStream(new BufferedInputStream(new FileInputStream(musicPath)));
+			Clip clip = AudioSystem.getClip();
+			clip.start();*/
+			}else {
+				System.out.println("error");
 			}
 		}
-		
+		catch(Exception error) {
+			error.printStackTrace();
+		}
+	}
 }
 
 
