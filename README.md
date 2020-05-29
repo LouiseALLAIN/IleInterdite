@@ -3,6 +3,9 @@ PROJET ILE INTERDITE
 ## Sommaire
 * [1. On va se la couler douce](#1.-On-va-se-la-couler-douce)
 * [2. Noooon, pas la trempette !](#2.-Noooon,-pas-la-trempette-!)
+* [3. Sa place est dans un musée](#3.-Sa-place-est-dans-un-musée)
+* [4. La vraie aventure](#4.-La-vraie-aventure)
+* [Répartition du travail](#Répartition-du-travail)
 
 ## 1. On va se la couler douce
 
@@ -19,3 +22,17 @@ Nous avons créé la classe Joueur qui implémente chaque joueur et les avons pl
 ### Problèmes rencontrés
 
 Dans cette phase du projet, nous avons décidé de créer un menu demandant le nombre de joueur, ce qui a été particulièrement compliqué (PAUL C'EST TON MOMENT). Nous avons aussi eu des difficultés à implémenter les déplacements grâce aux touches du clavier (nous avions tout d'abord fait des boutons) et à faire en sorte que les informations contenues sur le panneau latéral s'actualisent au fil de la partie.
+
+## 3. Sa place est dans un musée
+
+### Fonctionnalités implémentées
+
+### Problèmes rencontrés
+
+## 4. La vraie aventure
+
+### Fonctionnalités implémentées
+
+### Problèmes rencontrés
+
+## Répartition du travail
