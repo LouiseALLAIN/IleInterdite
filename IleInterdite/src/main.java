@@ -1,13 +1,7 @@
 import java.util.*;
-import java.util.List;
 import java.awt.*;
-import java.awt.event.*;
-import java.io.File;
-import java.io.IOException;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.swing.*;
+
+////////////////////Schéma observateur/observé////////////////////
 
 /**
  * Interface des objets observateurs.
@@ -33,13 +27,12 @@ abstract class Observable {
      * viennent s'inscrire les observateurs via la méthode [addObserver].
      */
     private ArrayList<Observer> observers;
-    public Observable() {
-	this.observers = new ArrayList<Observer>();
-    }
+	public Observable() {
+	    this.observers = new ArrayList<Observer>();
+	}
     public void addObserver(Observer o) {
-	observers.add(o);
+    	observers.add(o);
     }
-
     /**
      * Lorsque l'état de l'objet observé change, il est convenu d'appeler la
      * méthode [notifyObservers] pour prévenir l'ensemble des observateurs
@@ -48,13 +41,15 @@ abstract class Observable {
      * observateur.
      */
     public void notifyObservers() {
-	for(Observer o : observers) {
-	    o.update();
-	}
+		for(Observer o : observers) {
+		    o.update();
+		}
     }
 }
-/** Fin du schéma observateur/observé. */
 
+////////////////////Fin schéma observateur/observé////////////////////
+
+////////////////////Classe principale////////////////////
 
 /**
  * Nous allons commencer à construire notre application, en voici la classe
@@ -74,18 +69,8 @@ public class main {
 	 * incantation qu'on pourra expliquer plus tard.
 	 */
     	EventQueue.invokeLater(() -> {
-    		/** Voici le contenu qui nous intéresse. */
-    				
-    				CVueMenu vueMenu = new CVueMenu();
-    				/**while(true) {
-    					if(vueMenu.resultat != 0) {
-    						CModele modele = new CModele(vueMenu.resultat);
-    						CVue vue = new CVue(modele); 
-    						break;
-    					}
-    					
-    				}*/
-    	    });
+    		new CVueMenu();
+    	});
     }
 }
-/** Fin de la classe principale. */
+////////////////////Fin classe principale////////////////////
