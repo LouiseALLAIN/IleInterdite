@@ -200,6 +200,18 @@ class VueGrille extends JPanel implements Observer {
 
     public void paintComponent(Graphics g) {
 	super.repaint();
+	ImageIcon j1 = new ImageIcon("J1.PNG");
+    Image J1 = j1.getImage();
+    
+    ImageIcon j2  = new ImageIcon("J2.PNG");
+    Image J2 = j2.getImage();
+    
+    ImageIcon j3 = new ImageIcon("J3.PNG");
+    Image J3 = j3.getImage();
+    
+    ImageIcon j4 = new ImageIcon("J4.PNG");
+    Image J4 = j4.getImage();
+    
 	/** Pour chaque cellule... */
 	if(!modele.victoire() && modele.defaite() == 0) {
 		for(int i=1; i<=CModele.LARGEUR; i++) {
@@ -214,7 +226,16 @@ class VueGrille extends JPanel implements Observer {
 		}
 		g.setColor(Color.WHITE);
 		for (int i = 0; i < modele.nbJoueurs; i++) {
-			g.drawString(Integer.toString(i+1), modele.getJoueurs()[i].x*TAILLE-23, modele.getJoueurs()[i].y*TAILLE-15);
+			if(i == 0)
+			g.drawImage(J1, modele.getJoueurs()[i].x*TAILLE-40, modele.getJoueurs()[i].y*TAILLE-40, TAILLE, TAILLE, null);
+			if(i == 1)
+			g.drawImage(J2, modele.getJoueurs()[i].x*TAILLE-40, modele.getJoueurs()[i].y*TAILLE-40, TAILLE, TAILLE, null);
+			if(i == 2)
+				g.drawImage(J3, modele.getJoueurs()[i].x*TAILLE-40, modele.getJoueurs()[i].y*TAILLE-40, TAILLE, TAILLE, null);
+			if(i == 3)
+				g.drawImage(J4, modele.getJoueurs()[i].x*TAILLE-40, modele.getJoueurs()[i].y*TAILLE-40, TAILLE, TAILLE, null);
+			g.drawString(Integer.toString(i+1), modele.getJoueurs()[i].x*TAILLE-23, modele.getJoueurs()[i].y*TAILLE);
+
 		}
 	}else if (modele.victoire()){
 		this.removeAll();
@@ -327,10 +348,11 @@ class VueGrille extends JPanel implements Observer {
        	if(c.presenceJoueur) {
        		/*g.setColor(Color.BLACK);
        		g.fillOval(x+5,  y+5,  TAILLE-10, TAILLE-10);*/
-       		g.drawImage(player, x, y, TAILLE, TAILLE, null);
+       		//g.drawImage(player, x, y, TAILLE, TAILLE, null);
        	}
     }
 }
+
 
 class VuePlayer extends JPanel implements Observer {
 
@@ -586,4 +608,3 @@ class VueMenu extends JPanel implements Observer {
         /** Coloration d'un rectangle. */
     
 }
-
