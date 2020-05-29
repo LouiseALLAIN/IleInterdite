@@ -27,7 +27,7 @@ Dans cette phase du projet, nous avons décidé de créer un menu demandant le n
 
 ### Fonctionnalités implémentées
 
-### Problèmes rencontrés
+Nous avons inclus dans notre modèle les clés pouvant être possédées par un joueur ainsi que le fait qu'en fin de tour, le joueur puisse recevoir une clé aléatoire avec une probabilité de 30%. Nous avons aussi ajouté au contrôleur le fait de récupérer un artéfact avec la touche "Space" du clavier et la partie gagnante. La partie perdante affiche quant-à-elle la raison de la défaite grâce à un switch case. Afin de décider d'une défaite, nous avons donné 4 critères qui sont la submersion de l'héliport ou d'une zone d'artéfact, la noyade d'un joueur ainsi que l'abandon de la partie grâce à un bouton sur le panneau latéral.
 
 ## 4. La vraie aventure
 
