@@ -5,6 +5,7 @@ PROJET ILE INTERDITE
 * [2. Noooon, pas la trempette !](#2.-Noooon,-pas-la-trempette-!)
 * [3. Sa place est dans un musée](#3.-Sa-place-est-dans-un-musée)
 * [4. La vraie aventure](#4.-La-vraie-aventure)
+* [Travail graphique](#Travail-graphique)
 * [Répartition du travail](#Répartition-du-travail)
 
 ## 1. On va se la couler douce
