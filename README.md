@@ -33,6 +33,12 @@ Nous avons inclus dans notre modèle les clés pouvant être possédées par un 
 
 ### Fonctionnalités implémentées
 
+Nous avons réalisés le premier et le deuxième point de cette partie. Nous avons tout d'abord fait en sorte qu'il faille désormais 4 clés pour récupérer un artéfact en changeant la méthode recupere() et avons implémenter l'échange de clé grâce au clavier. Nous avons aussi ajouté l'hélicoptère et le sac de sable, qui ont 10% de chance d'être obtenus à la fin de chaque tour. L'hélicoptère et le sac de sable peuvent être utilisés grâce à un clic de la souris sur la zone concernée. Pour réaliser le sac de sable, nous avons du modifier la méthode asseche(). 
+
 ### Problèmes rencontrés
+
+Nous avons rencontrés des problèmes pour l'échange de clé puisque nous voulions utiliser une suite de touches (par exemple 1 puis E pour donner une clé d'eau au joueur 1) mais cela a été compliqué. Par ailleurs, sans pavé tactile, nous avons du remplacer 1 par F1 ce qui nous oblige alors à faire Fn+F1 suivi de E. En ce qu'il s'agit du sac de sable et de l'hélicoptère, nous avons rencontré quelques difficultés dans l'utilisation des touches de la souris et du calcul de la case concernée. 
+
+## Travail graphique
 
 ## Répartition du travail
