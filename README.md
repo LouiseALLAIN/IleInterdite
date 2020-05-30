@@ -38,7 +38,7 @@ Nous avons réalisé le premier et le deuxième point de cette partie. Nous avon
 
 ### Problèmes rencontrés
 
-Nous avons rencontré des problèmes pour l'échange de clé puisque nous voulions utiliser une suite de touches (par exemple 1 puis E pour donner une clé d'eau au joueur 1) mais cela a été compliqué. Par ailleurs, sans pavé tactile, nous avons du remplacer 1 par F1 ce qui nous oblige alors à faire Fn+F1 suivi de E. En ce qu'il s'agit du sac de sable et de l'hélicoptère, nous avons rencontré quelques difficultés dans l'utilisation des touches de la souris et du calcul de la case concernée. 
+Nous avons rencontré des problèmes pour l'échange de clé puisque nous voulions utiliser une suite de touches (par exemple 1 puis E pour donner une clé d'eau au joueur 1) mais cela a été compliqué. Par ailleurs, sans pavé tactile, nous avons du remplacer 1 par F1 ce qui nous oblige alors à faire Fn+F1 suivi de E. En ce qu'il s'agit du sac de sable et de l'hélicoptère, nous avons rencontré quelques difficultés dans l'utilisation des touches de la souris et dû calcul de la case concernée. 
 
 ## Travail graphique
 
