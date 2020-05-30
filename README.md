@@ -34,7 +34,7 @@ Nous avons inclus dans notre modèle les clés pouvant être possédées par un 
 
 ### Fonctionnalités implémentées
 
-Nous avons réalisé le premier et le deuxième point de cette partie. Nous avons tout d'abord fait en sorte qu'il faille désormais 4 clés pour récupérer un artéfact en changeant la méthode recupere() et avons implémenter l'échange de clé grâce au clavier. Nous avons aussi ajouté l'hélicoptère et le sac de sable, qui ont 10% de chance d'être obtenus à la fin de chaque tour. L'hélicoptère et le sac de sable peuvent être utilisés grâce à un clic de la souris sur la zone concernée. Pour réaliser le sac de sable, nous avons du modifier la méthode asseche(). 
+Nous avons réalisé le premier et le deuxième point de cette partie. Nous avons tout d'abord fait en sorte qu'il faille désormais 4 clés pour récupérer un artéfact en changeant la méthode recupere() et avons implémenté l'échange de clé grâce au clavier. Nous avons aussi ajouté l'hélicoptère et le sac de sable, qui ont 10% de chance d'être obtenus à la fin de chaque tour. L'hélicoptère et le sac de sable peuvent être utilisés grâce à un clic de la souris sur la zone concernée. Pour réaliser le sac de sable, nous avons du modifier la méthode asseche(). 
 
 ### Problèmes rencontrés
 
