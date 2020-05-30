@@ -22,7 +22,7 @@ Nous avons créé la classe Joueur qui implémente chaque joueur et les avons pl
 
 ### Problèmes rencontrés
 
-Dans cette phase du projet, nous avons décidé de créer un menu demandant le nombre de joueur, ce qui a été particulièrement compliqué (PAUL C'EST TON MOMENT). Nous avons aussi eu des difficultés à implémenter les déplacements grâce aux touches du clavier (nous avions tout d'abord fait des boutons) et à faire en sorte que les informations contenues sur le panneau latéral s'actualisent au fil de la partie.
+Dans cette phase du projet, nous avons décidé de créer un menu demandant le nombre de joueur, ce qui a été particulièrement compliqué. Cela passait par la création d'un autre JFrame et d'une vue alternative, le tout créant la JFrame principale avec le modèle correspondant au nombre de joueurs demandé. Nous avons aussi eu des difficultés à implémenter les déplacements grâce aux touches du clavier (nous avions tout d'abord fait des boutons) et à faire en sorte que les informations contenues sur le panneau latéral s'actualisent au fil de la partie.
 
 ## 3. Sa place est dans un musée
 
