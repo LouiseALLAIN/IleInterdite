@@ -44,4 +44,10 @@ Nous avons rencontré des problèmes pour l'échange de clé puisque nous voulio
 Nous avons représenté l'île par une grille rectangulaire de 15x10 cases, chaque case correspondant à une zone accessible. La figure sur la case est associée à son état : il y a trois images pour une zone sèche, inondée et submergée. Les zones spéciales (héliport, artefacts) sont représentées par des images en forme de cercles inscrits dans la case, afin que l'on puisse détecter l'état des cases sur lesquelles elles se trouvent. Enfin, les joueurs sont des images d'aventuriers de couleurs différentes, pour les différencier plus facilement,avec, en plus, un numéro qui se déplacent sur les cases. 
 Nous avons également ajouté une musique de fond qui se lance dès le démarrage du menu. 
 
+### Problèmes rencontrés
+Ici, le problème majeur était de réussir à importer la première image. Nous avions quelques difficultés quant à l'endroit où importer l'image et dans quelle fonction l'implémenter. Une fois cette première image implémentée avec succès, il suffisait de répéter l'opération pour les 12 autres images. Il a fallu de simples retouches photos (changer la forme rectangulaire pour opter pour un cercle, enlever le fond de l'image, modifier les couleurs des joueurs) pour avoir un jeu qui nous plaise.
+
+(toutes les images sont prises de www.vectorstock.com, la musique provient de www.melodyloops.com)
+
 ## Répartition du travail
+(euh Louise ALED, tu as fait beaucoup trop de choses (voir tout) comparé à nous ^^' ) 
