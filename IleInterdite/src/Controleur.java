@@ -1,3 +1,5 @@
+package ilEiNTERDITE;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -120,42 +122,64 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 	public void actionPerformed(ActionEvent e) {
 		if (modele.victoire() || modele.defaite() != 0) return;
 		String actionCode = e.getActionCommand();
-		switch (actionCode) {
-		case "h":
-			modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y-1);
-			break;
-		case "b":
-			modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y+1);
-			break;
-		case "d":
-			modele.asseche(false, modele.getJoueurs(modele.getTour()).x+1, modele.getJoueurs(modele.getTour()).y);
-			break;
-		case "g":
-			modele.asseche(false, modele.getJoueurs(modele.getTour()).x-1, modele.getJoueurs(modele.getTour()).y);;
-			break;
-		case "o":
-			modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y);
-			break;
-		case "Abandonner":
-			modele.abandonner();
-			break;
+		if(modele.getJoueurs(modele.getTour()).role == roles.explorateur) {
+			switch (actionCode) {
+			case "h":
+				modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y-1);
+				break;
+			case "b":
+				modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y+1);
+				break;
+			case "d":
+				modele.asseche(false, modele.getJoueurs(modele.getTour()).x+1, modele.getJoueurs(modele.getTour()).y);
+				break;
+			case "g":
+				modele.asseche(false, modele.getJoueurs(modele.getTour()).x-1, modele.getJoueurs(modele.getTour()).y);;
+				break;
+			case "o":
+				modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y);
+				break;
+			case "hg":
+				modele.asseche(false, modele.getJoueurs(modele.getTour()).x-1, modele.getJoueurs(modele.getTour()).y-1);
+				break;
+			case "hd":
+				modele.asseche(false, modele.getJoueurs(modele.getTour()).x+1, modele.getJoueurs(modele.getTour()).y-1);
+				break;
+			case "bg":
+				modele.asseche(false, modele.getJoueurs(modele.getTour()).x-1, modele.getJoueurs(modele.getTour()).y+1);
+				break;
+			case "bd":
+				modele.asseche(false, modele.getJoueurs(modele.getTour()).x+1, modele.getJoueurs(modele.getTour()).y+1);;
+				break;
+			case "Abandonner":
+				modele.abandon = true;
+				break;
+			}
 		}
-		
+		else {
+			switch (actionCode) {
+			case "h":
+				modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y-1);
+				break;
+			case "b":
+				modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y+1);
+				break;
+			case "d":
+				modele.asseche(false, modele.getJoueurs(modele.getTour()).x+1, modele.getJoueurs(modele.getTour()).y);
+				break;
+			case "g":
+				modele.asseche(false, modele.getJoueurs(modele.getTour()).x-1, modele.getJoueurs(modele.getTour()).y);;
+				break;
+			case "o":
+				modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y);
+				break;
+			case "Abandonner":
+				modele.abandon = true;
+				break;
+			}
+		}
 	}
-
-	@Override
-	public void mouseClicked(MouseEvent m) {
-		int mouseCode = m.getButton();
-		switch (mouseCode) {
-		case MouseEvent.BUTTON1:
-			modele.prendreHelicoptere(m.getX()/40+1, m.getY()/40+1);
-			break;
-		case MouseEvent.BUTTON3:
-			modele.asseche(true, m.getX()/40+1, m.getY()/40+1);
-			break;
-		}		
-	}
-
+	
 	@Override
 	public void mouseEntered(MouseEvent arg0) {
 		// TODO Auto-generated method stub
@@ -169,17 +193,50 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 	}
 
 	@Override
-	public void mousePressed(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void mousePressed(MouseEvent e) {
+		//Invoked when a mouse button has been pressed on a component.
+		 int xx = (int) Math.round(e.getX()/40) + 1;
+		 int yy = (int) Math.round(e.getY()/40) + 1;
+		 modele.pilote(modele.getJoueurs(modele.getTour()), xx, yy);
+		 modele.explore(modele.getJoueurs(modele.getTour()), xx, yy);
+		 
+		}
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
 		// TODO Auto-generated method stub
 		
 	}
-}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+			int mouseCode = e.getButton();
+			switch (mouseCode) {
+			case MouseEvent.BUTTON1:
+				modele.prendreHelicoptere(e.getX()/40+1, e.getY()/40+1);
+				break;
+			case MouseEvent.BUTTON3:
+				modele.asseche(true, e.getX()/40+1, e.getY()/40+1);
+				break;
+			}
+			/**if(SwingUtilities.isLeftMouseButton(m)) {
+				System.out.println((m.getX()-1)/40 + " " + m.getY()/40);
+			}
+			else if(SwingUtilities.isRightMouseButton(m)) {
+				System.out.println("ok");
+				
+			}**/
+			
+		}
+
+		
+	}
+
+
+
+
+
+
 
 class ControleurMenu implements ActionListener{
     public ControleurMenu() { }
