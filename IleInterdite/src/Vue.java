@@ -6,7 +6,6 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.io.File;
-
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -31,10 +30,6 @@ class CVue {
      * de l'application graphique.
      */
     private JFrame frame;
-    /**
-     * VueGrille et VueCommandes sont deux classes définies plus loin, pour
-     * nos deux parties de l'interface graphique.
-     */
     private VueGrille grille;
     private VueCommandes commandes;
     private VuePlayer player;
@@ -47,34 +42,12 @@ class CVue {
 	text.setLayout(new BoxLayout(text, BoxLayout.LINE_AXIS));
     text.add(new JLabel("Cliquer pour assécher une zone inondée"));
     JPanel bouton = new JPanel();
- 
-    
-    /**
-	 * On précise un mode pour disposer les différents éléments à
-	 * l'intérieur de la fenêtre. Quelques possibilités sont :
-	 *  - BorderLayout (défaut pour la classe JFrame) : chaque élément est
-	 *    disposé au centre ou le long d'un bord.
-	 *  - FlowLayout (défaut pour un JPanel) : les éléments sont disposés
-	 *    l'un à la suite de l'autre, dans l'ordre de leur ajout, les lignes
-	 *    se formant de gauche à droite et de haut en bas. Un élément peut
-	 *    passer à la ligne lorsque l'on redimensionne la fenêtre.
-	 *  - GridLayout : les éléments sont disposés l'un à la suite de
-	 *    l'autre sur une grille avec un nombre de lignes et un nombre de
-	 *    colonnes définis par le programmeur, dont toutes les cases ont la
-	 *    même dimension. Cette dimension est calculée en fonction du
-	 *    nombre de cases à placer et de la dimension du contenant.
-	 */
 	frame.setLayout(new FlowLayout());
-	//frame.setLayout(new BorderLayout());
-
-
-	/** Définition des deux vues et ajout à la fenêtre. */
 	grille = new VueGrille(modele);
 	frame.add(grille);
 	commandes = new VueCommandes(modele);
 	bouton.setLayout(new BoxLayout(bouton, BoxLayout.PAGE_AXIS));
 	bouton.add(commandes);
-
     JPanel position = new JPanel();
     position.setLayout(new BoxLayout(position, BoxLayout.PAGE_AXIS));
     position.add(text);
@@ -82,23 +55,6 @@ class CVue {
     player = new VuePlayer(modele);
     position.add(player);
     frame.add(position);
-	
-	/**
-	 * Remarque : on peut passer à la méthode [add] des paramètres
-	 * supplémentaires indiquant où placer l'élément. Par exemple, si on
-	 * avait conservé la disposition par défaut [BorderLayout], on aurait
-	 * pu écrire le code suivant pour placer la grille à gauche et les
-	 * commandes à droite.
-	 *     frame.add(grille, BorderLayout.WEST);
-	 *     frame.add(commandes, BorderLayout.EAST);
-	 */
-
-	/**
-	 * Fin de la plomberie :
-	 *  - Ajustement de la taille de la fenêtre en fonction du contenu.
-	 *  - Indiquer qu'on quitte l'application si la fenêtre est fermée.
-	 *  - Préciser que la fenêtre doit bien apparaître à l'écran.
-	 */
 	frame.pack();
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	frame.setVisible(true);
@@ -150,21 +106,9 @@ class VueCommandes extends JPanel {
 		AssecheBas.addKeyListener(ctrl);
 		Asseche.addKeyListener(ctrl);
 		AssecheGauche.addKeyListener(ctrl);
-		abandon.addActionListener(ctrl);
-		
-		/**
-		 * Variante : une lambda-expression qui évite de créer une classe
-	         * spécifique pour un contrôleur simplissime.
-	         *
-	         JButton boutonAvance = new JButton(">");
-	         this.add(boutonAvance);
-	         boutonAvance.addActionListener(e -> { modele.avance(); });
-	         *
-	         */
-	
+		abandon.addActionListener(ctrl);	
     }
 }
-/** Fin de la vue. */
 
 class VueGrille extends JPanel implements Observer {
     /** On maintient une référence vers le modèle. */
@@ -216,25 +160,20 @@ class VueGrille extends JPanel implements Observer {
 	if(!modele.victoire() && modele.defaite() == 0) {
 		for(int i=1; i<=CModele.LARGEUR; i++) {
 		    for(int j=1; j<=CModele.HAUTEUR; j++) {
-			/**
-			 * ... Appeler une fonction d'affichage auxiliaire.
-			 * On lui fournit les informations de dessin [g] et les
-			 * coordonnées du coin en haut à gauche.
-			 */
 			paint(g, modele.getCellule(i, j), (i-1)*TAILLE, (j-1)*TAILLE);
 		    }
 		}
 		g.setColor(Color.WHITE);
 		for (int i = 0; i < modele.nbJoueurs; i++) {
 			if(i == 0)
-			g.drawImage(J1, modele.getJoueurs()[i].x*TAILLE-40, modele.getJoueurs()[i].y*TAILLE-40, TAILLE, TAILLE, null);
+			g.drawImage(J1, modele.getJoueurs(i).x*TAILLE-40, modele.getJoueurs(i).y*TAILLE-40, TAILLE, TAILLE, null);
 			if(i == 1)
-			g.drawImage(J2, modele.getJoueurs()[i].x*TAILLE-40, modele.getJoueurs()[i].y*TAILLE-40, TAILLE, TAILLE, null);
+			g.drawImage(J2, modele.getJoueurs(i).x*TAILLE-40, modele.getJoueurs(i).y*TAILLE-40, TAILLE, TAILLE, null);
 			if(i == 2)
-				g.drawImage(J3, modele.getJoueurs()[i].x*TAILLE-40, modele.getJoueurs()[i].y*TAILLE-40, TAILLE, TAILLE, null);
+				g.drawImage(J3, modele.getJoueurs(i).x*TAILLE-40, modele.getJoueurs(i).y*TAILLE-40, TAILLE, TAILLE, null);
 			if(i == 3)
-				g.drawImage(J4, modele.getJoueurs()[i].x*TAILLE-40, modele.getJoueurs()[i].y*TAILLE-40, TAILLE, TAILLE, null);
-			g.drawString(Integer.toString(i+1), modele.getJoueurs()[i].x*TAILLE-23, modele.getJoueurs()[i].y*TAILLE);
+				g.drawImage(J4, modele.getJoueurs(i).x*TAILLE-40, modele.getJoueurs(i).y*TAILLE-40, TAILLE, TAILLE, null);
+			g.drawString(Integer.toString(i+1), modele.getJoueurs(i).x*TAILLE-23, modele.getJoueurs(i).y*TAILLE);
 
 		}
 	}else if (modele.victoire()){
@@ -291,8 +230,6 @@ class VueGrille extends JPanel implements Observer {
 		Font font = new Font("Arial", Font.BOLD, 25);
 		fin.setFont(font);
 		this.add(fin);
-		/*int a = modele.defaite();
-		this.add(new JLabel(String.valueOf(a)));*/
 		this.validate();
 	}
     }
@@ -333,22 +270,15 @@ class VueGrille extends JPanel implements Observer {
            
            ImageIcon i8 = new ImageIcon("joueur.png");
            Image player = i8.getImage();
-        /** Coloration d'un rectangle. */
-           /** Sélection d'une couleur. */
        	if (c.etat == etat.normale) g.drawImage(terre, x, y, TAILLE, TAILLE, null); 
        	else if (c.etat == etat.inondee) g.drawImage(inondé, x, y, TAILLE, TAILLE, null);
        	else g.drawImage(submergé, x, y, TAILLE, TAILLE, null);
-       	//g.fillRect(x, y, TAILLE, TAILLE);
        	if(c.type == elements.eau) g.drawImage(eau, x, y, TAILLE, TAILLE, null);
        	if(c.type == elements.air) g.drawImage(air, x, y, TAILLE, TAILLE, null);
        	if(c.type == elements.feu) g.drawImage(feu, x, y, TAILLE, TAILLE, null);
        	if(c.type == elements.terre) g.drawImage(herbe, x, y, TAILLE, TAILLE, null);
        	if(c.type == elements.heliport) g.drawImage(heliport, x, y, TAILLE, TAILLE, null);
-       	//if(c.type != elements.autre) g.fillOval(x, y, TAILLE, TAILLE);
        	if(c.presenceJoueur) {
-       		/*g.setColor(Color.BLACK);
-       		g.fillOval(x+5,  y+5,  TAILLE-10, TAILLE-10);*/
-       		//g.drawImage(player, x, y, TAILLE, TAILLE, null);
        	}
     }
 }
@@ -365,19 +295,19 @@ class VuePlayer extends JPanel implements Observer {
     public VuePlayer(CModele modele) {
 	this.modele = modele;
 	modele.addObserver(this);
-  	int actions = modele.getJoueurs()[modele.getTour()].nbActions;  //actions
+  	int actions = modele.getNbActions();  //actions
   	this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-  	this.add(new JLabel("Nombre de joueurs: " + modele.getJoueurs().length));
+  	this.add(new JLabel("Nombre de joueurs: " + modele.nbJoueurs));
   	this.add(new JLabel("Au tour du joueur: " + (modele.getTour()+1)));
   	this.add(new JLabel("Nombre d'actions restantes: " + (3-actions)));
   	for (int i = 0; i < modele.nbJoueurs; i++) {
   		this.add(new JLabel("Joueur " + (i+1) + " : " + 
-  				modele.getJoueurs()[i].cleEau + " Clés eau, " + 
-  				modele.getJoueurs()[i].cleAir + " Clés air, " + 
-  				modele.getJoueurs()[i].cleFeu + " Clés feu, " + 
-  				modele.getJoueurs()[i].cleTerre + " Clés terre, " +
-  				modele.getJoueurs()[i].helicoptere + " Hélicoptères, " +
-  				modele.getJoueurs()[i].sacSable + " Sacs de sable "));
+  				modele.getJoueurs(i).cleEau + " Clés eau, " + 
+  				modele.getJoueurs(i).cleAir + " Clés air, " + 
+  				modele.getJoueurs(i).cleFeu + " Clés feu, " + 
+  				modele.getJoueurs(i).cleTerre + " Clés terre, " +
+  				modele.getJoueurs(i).helicoptere + " Hélicoptères, " +
+  				modele.getJoueurs(i).sacSable + " Sacs de sable "));
   	}
   	this.add(value0);
   	this.add(value1);
@@ -387,23 +317,23 @@ class VuePlayer extends JPanel implements Observer {
 
     public void update() { 
     	this.removeAll();
-    	int actions = modele.getJoueurs()[modele.getTour()].nbActions;  //actions
-    	this.add(new JLabel("Nombre de joueurs: " + modele.getJoueurs().length));
+    	int actions = modele.getNbActions();  //actions
+    	this.add(new JLabel("Nombre de joueurs: " + modele.nbJoueurs));
       	this.add(new JLabel("Au tour du joueur: " + (modele.getTour()+1)));
       	this.add(new JLabel("Nombre d'actions restantes: " + (3-actions)));
       	for (int i = 0; i < modele.nbJoueurs; i++) {
       		this.add(new JLabel("Joueur " + (i+1) + " : " + 
-      				modele.getJoueurs()[i].cleEau + " Clés eau, " + 
-      				modele.getJoueurs()[i].cleAir + " Clés air, " + 
-      				modele.getJoueurs()[i].cleFeu + " Clés feu, " + 
-      				modele.getJoueurs()[i].cleTerre + " Clés terre, " + 
-      				modele.getJoueurs()[i].helicoptere + " Hélicoptères, " +
-      				modele.getJoueurs()[i].sacSable + " Sacs de sable "));
+      				modele.getJoueurs(i).cleEau + " Clés eau, " + 
+      				modele.getJoueurs(i).cleAir + " Clés air, " + 
+      				modele.getJoueurs(i).cleFeu + " Clés feu, " + 
+      				modele.getJoueurs(i).cleTerre + " Clés terre, " + 
+      				modele.getJoueurs(i).helicoptere + " Hélicoptères, " +
+      				modele.getJoueurs(i).sacSable + " Sacs de sable "));
       	}
-      	if(modele.artefacts[0] != -1) value0 = new JLabel("Artéfact d'eau possédé par Joueur " + modele.artefacts[0]);
-      	if(modele.artefacts[1] != -1) value1 = new JLabel("Artéfact d'air possédé par Joueur " + modele.artefacts[1]);
-      	if(modele.artefacts[2] != -1) value2 = new JLabel("Artéfact de feu possédé par Joueur " + modele.artefacts[2]);
-      	if(modele.artefacts[3] != -1) value3 = new JLabel("Artéfact de terre possédé par Joueur " + modele.artefacts[3]);
+      	if(modele.getArtefact(0) != -1) value0 = new JLabel("Artéfact d'eau possédé par Joueur " + modele.getArtefact(0));
+      	if(modele.getArtefact(1) != -1) value1 = new JLabel("Artéfact d'air possédé par Joueur " + modele.getArtefact(1));
+      	if(modele.getArtefact(2) != -1) value2 = new JLabel("Artéfact de feu possédé par Joueur " + modele.getArtefact(2));
+      	if(modele.getArtefact(3) != -1) value3 = new JLabel("Artéfact de terre possédé par Joueur " + modele.getArtefact(3));
       	this.add(value0);
       	this.add(value1);
       	this.add(value2);
@@ -419,11 +349,6 @@ class VueCommandesMenu extends JPanel {
      */
     /** Constructeur. */
     public VueCommandesMenu() {
-		/**
-		 * On crée un nouveau bouton, de classe [JButton], en précisant le
-		 * texte qui doit l'étiqueter.
-		 * Puis on ajoute ce bouton au panneau [this].
-		 */
         JPanel boutons = new JPanel();
     	boutons.setLayout(new BoxLayout(boutons, BoxLayout.LINE_AXIS));
         boutons.add(new JLabel("Combien d'aventuriers partiront en expédition? "));
@@ -482,25 +407,6 @@ class CVueMenu {
     JLabel img = new JLabel(icone, JLabel.CENTER);
     
     frame.add(img, BorderLayout.PAGE_START);
-    
-    /**
-	 * On précise un mode pour disposer les différents éléments à
-	 * l'intérieur de la fenêtre. Quelques possibilités sont :
-	 *  - BorderLayout (défaut pour la classe JFrame) : chaque élément est
-	 *    disposé au centre ou le long d'un bord.
-	 *  - FlowLayout (défaut pour un JPanel) : les éléments sont disposés
-	 *    l'un à la suite de l'autre, dans l'ordre de leur ajout, les lignes
-	 *    se formant de gauche à droite et de haut en bas. Un élément peut
-	 *    passer à la ligne lorsque l'on redimensionne la fenêtre.
-	 *  - GridLayout : les éléments sont disposés l'un à la suite de
-	 *    l'autre sur une grille avec un nombre de lignes et un nombre de
-	 *    colonnes définis par le programmeur, dont toutes les cases ont la
-	 *    même dimension. Cette dimension est calculée en fonction du
-	 *    nombre de cases à placer et de la dimension du contenant.
-	 */
-	
-	//frame.setLayout(new BorderLayout());
-
 
 	/** Définition des deux vues et ajout à la fenêtre. */
 	VueMenu menu = new VueMenu();
@@ -508,29 +414,11 @@ class CVueMenu {
 	VueCommandesMenu commandes = new VueCommandesMenu();
 	bouton.setLocation(frame.getHeight()/2, frame.getWidth()/2);
 	bouton.add(commandes);
-
     JPanel position = new JPanel();
     position.add(text, BorderLayout.CENTER);
     position.add(bouton);
     frame.add(position, BorderLayout.CENTER);
 	music("music.wav");
-	
-	/**
-	 * Remarque : on peut passer à la méthode [add] des paramètres
-	 * supplémentaires indiquant où placer l'élément. Par exemple, si on
-	 * avait conservé la disposition par défaut [BorderLayout], on aurait
-	 * pu écrire le code suivant pour placer la grille à gauche et les
-	 * commandes à droite.
-	 *     frame.add(grille, BorderLayout.WEST);
-	 *     frame.add(commandes, BorderLayout.EAST);
-	 */
-
-	/**
-	 * Fin de la plomberie :
-	 *  - Ajustement de la taille de la fenêtre en fonction du contenu.
-	 *  - Indiquer qu'on quitte l'application si la fenêtre est fermée.
-	 *  - Préciser que la fenêtre doit bien apparaître à l'écran.
-	 */
 	frame.pack();
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	frame.setVisible(true);
@@ -543,18 +431,11 @@ class CVueMenu {
 		try {
 			File musicPath = new File(filepath);
 			if(musicPath.exists()) {
-				
-
 				AudioInputStream audioIn = AudioSystem.getAudioInputStream(musicPath);
 				Clip clip = AudioSystem.getClip(); 
 				clip.open(audioIn); 
 				clip.start(); 
 				clip.loop(clip.LOOP_CONTINUOUSLY);
-				
-				
-			/*AudioInputStream audioInput = AudioSystem.getAudioInputStream(new BufferedInputStream(new FileInputStream(musicPath)));
-			Clip clip = AudioSystem.getClip();
-			clip.start();*/
 			}else {
 				System.out.println("error");
 			}
@@ -572,39 +453,11 @@ class VueMenu extends JPanel implements Observer {
 
     /** Constructeur. */
     public VueMenu() {
-	/**
-	 * Définition et application d'une taille fixe pour cette zone de
-	 * l'interface, calculée en fonction du nombre de cellules et de la
-	 * taille d'affichage.
-	 */
 	Dimension dim = new Dimension(TAILLE*CModele.LARGEUR,
 				      TAILLE*CModele.HAUTEUR);
 	this.setPreferredSize(dim);
     }
-
-    /**
-     * L'interface [Observer] demande de fournir une méthode [update], qui
-     * sera appelée lorsque la vue sera notifiée d'un changement dans le
-     * modèle. Ici on se content de réafficher toute la grille avec la méthode
-     * prédéfinie [repaint].
-     */
     public void update() { repaint(); }
-
-    /**
-     * Les éléments graphiques comme [JPanel] possèdent une méthode
-     * [paintComponent] qui définit l'action à accomplir pour afficher cet
-     * élément. On la redéfinit ici pour lui confier l'affichage des cellules.
-     *
-     * La classe [Graphics] regroupe les éléments de style sur le dessin,
-     * comme la couleur actuelle.
-     */
-    /**
-     * Fonction auxiliaire de dessin d'une cellule.
-     * Ici, la classe [Cellule] ne peut être désignée que par l'intermédiaire
-     * de la classe [CModele] à laquelle elle est interne, d'où le type
-     * [CModele.Cellule].
-     * Ceci serait impossible si [Cellule] était déclarée privée dans [CModele].
-     */
-        /** Coloration d'un rectangle. */
     
 }
+

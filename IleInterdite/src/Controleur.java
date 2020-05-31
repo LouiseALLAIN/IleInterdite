@@ -48,7 +48,7 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 			modele.deplace(KeyEvent.VK_LEFT);
 			break;
 		case KeyEvent.VK_ENTER:
-			modele.avance();
+			modele.tourSuivant();
 			break;
 		case KeyEvent.VK_SPACE:
 			modele.recupere();
@@ -122,22 +122,22 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 		String actionCode = e.getActionCommand();
 		switch (actionCode) {
 		case "h":
-			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x, modele.getJoueurs()[modele.getTour()].y-1);
+			modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y-1);
 			break;
 		case "b":
-			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x, modele.getJoueurs()[modele.getTour()].y+1);
+			modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y+1);
 			break;
 		case "d":
-			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x+1, modele.getJoueurs()[modele.getTour()].y);
+			modele.asseche(false, modele.getJoueurs(modele.getTour()).x+1, modele.getJoueurs(modele.getTour()).y);
 			break;
 		case "g":
-			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x-1, modele.getJoueurs()[modele.getTour()].y);;
+			modele.asseche(false, modele.getJoueurs(modele.getTour()).x-1, modele.getJoueurs(modele.getTour()).y);;
 			break;
 		case "o":
-			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x, modele.getJoueurs()[modele.getTour()].y);
+			modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y);
 			break;
 		case "Abandonner":
-			modele.abandon = true;
+			modele.abandonner();
 			break;
 		}
 		
@@ -153,15 +153,7 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 		case MouseEvent.BUTTON3:
 			modele.asseche(true, m.getX()/40+1, m.getY()/40+1);
 			break;
-		}
-		/**if(SwingUtilities.isLeftMouseButton(m)) {
-			System.out.println((m.getX()-1)/40 + " " + m.getY()/40);
-		}
-		else if(SwingUtilities.isRightMouseButton(m)) {
-			System.out.println("ok");
-			
-		}**/
-		
+		}		
 	}
 
 	@Override
@@ -190,14 +182,6 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 }
 
 class ControleurMenu implements ActionListener{
-    /**
-     * On garde un pointeur vers le modèle, car le contrôleur doit
-     * provoquer un appel de méthode du modèle.
-     * Remarque : comme cette classe est interne, cette inscription
-     * explicite du modèle est inutile. On pourrait se contenter de
-     * faire directement référence au modèle enregistré pour la classe
-     * englobante [VueCommandes].
-     */
     public ControleurMenu() { }
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -222,7 +206,3 @@ class ControleurMenu implements ActionListener{
 		
 	}
 }
-
-/** Fin du contrôleur. */
-
-/** Fin du contrôleur. */
