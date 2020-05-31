@@ -1,3 +1,5 @@
+package ilEiNTERDITE;
+
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,9 +26,11 @@ class CModele extends Observable {
     private int tour;
     //Le numéro du joueur qui possède cet artéfact
     private int[] artefacts = new int[4];
-    private boolean abandon = false;
+    boolean abandon = false;
     private boolean[] joueursCoinces = new boolean[4];
-    private int nbActions;
+    private float nbActions;
+    private float nbAssechementsIngenieur;
+    //private int nbPilotages = 0;
     private Cartes<int[]> paquetZone = new Cartes(this);
     private Cartes<evenement> paquetEvent = new Cartes(this);
 
@@ -44,8 +48,15 @@ class CModele extends Observable {
     	int x = (int)(Math.random() * LARGEUR + 1);
     	int y = (int)(Math.random() * HAUTEUR + 1);
     	//Tous les joueurs commencent à l'héliport
-    	for (int i = 0; i < nbJoueurs; i++) {
-    		joueurs[i] = new Joueur(this, x, y);
+    	//joueurs[0] = new Joueur(this, x, y, role.plongeurRate)
+    	joueurs[0] = new Joueur(this, x, y, roles.pilote);
+    	joueurs[1] = new Joueur(this, x, y, roles.plongeur);
+    	if(nbJoueurs > 2) {
+    		joueurs[2] = new Joueur(this, x, y, roles.explorateur);
+    		if(nbJoueurs == 4) {
+    			joueurs[3] = new Joueur(this, x, y, roles.ingenieur);
+    			
+    		}
     	}
 	    tour = 0;
 		cellules = new Cellule[LARGEUR+2][HAUTEUR+2];
@@ -117,7 +128,7 @@ class CModele extends Observable {
 	 * Donne le nombre d'actions effectuées ce tour
 	 * @return Le nombre d'actions effectuées ce tour
 	 */
-	public int getNbActions() {return this.nbActions; }
+	public float getNbActions() {return this.nbActions; }
 	
     /**
      * Initialisation aléatoire des cellules, exceptées celle des bords qui
@@ -311,18 +322,22 @@ class CModele extends Observable {
 					pos[1] = joueurs[i].y+1;
 					echapatoire.add(pos);
 				}
-				if (echapatoire.size() == 0) this.joueursCoinces[i] = true;
-				else {
-					cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = false;
-					int a = (int)(Math.random()*echapatoire.size());
-					joueurs[i].x = echapatoire.get(a)[0];
-					joueurs[i].y = echapatoire.get(a)[1];
-					cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = true;
+				if(joueurs[i].role != roles.plongeurRate) {
+					if (echapatoire.size() == 0 && joueurs[i].role != roles.pilote) this.joueursCoinces[i] = true;
+					else {
+						cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = false;
+						int a = (int)(Math.random()*echapatoire.size());
+						joueurs[i].x = echapatoire.get(a)[0];
+						joueurs[i].y = echapatoire.get(a)[1];
+						cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = true;
+					}
 				}
 			}
 		}
 		tour=(tour+1)%nbJoueurs;
 	    nbActions = 0;
+	    nbAssechementsIngenieur = 0;
+	    //nbPilotages = 0;
 		/**
 		 * Pour finir, le modèle ayant changé, on signale aux observateurs
 		 * qu'ils doivent se mettre à jour.
@@ -335,34 +350,97 @@ class CModele extends Observable {
      * @param k : le code entier de la direction désirée
      */
     public void deplace(int k) {
+    	if(nbActions <= 2) {
     	//On indique que le joueur se déplace
 		cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
 		//On vérifie que la case ou il souhaite aller n'est pas submergée ou hors du terrain
-		if(k == KeyEvent.VK_RIGHT && cellules[joueurs[tour].x+1][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x+1 <= LARGEUR) {
+		if(k == KeyEvent.VK_RIGHT && (cellules[joueurs[tour].x+1][joueurs[tour].y].etat != etat.submergee || joueurs[tour].role == roles.plongeurRate) && joueurs[tour].x+1 <= LARGEUR) {
+			cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
 			joueurs[tour].x+=1;
 			nbActions++;
 		}
-		else if(k == KeyEvent.VK_LEFT && cellules[joueurs[tour].x-1][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x-1 > 0) {
+		else if(k == KeyEvent.VK_LEFT && (cellules[joueurs[tour].x-1][joueurs[tour].y].etat != etat.submergee || joueurs[tour].role == roles.plongeurRate)  && joueurs[tour].x-1 > 0) {
+			cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
 			joueurs[tour].x-=1;
 			nbActions++;
 		}
-		else if(k == KeyEvent.VK_UP && cellules[joueurs[tour].x][joueurs[tour].y-1].etat != etat.submergee && joueurs[tour].y-1 > 0) {
+		else if(k == KeyEvent.VK_UP && (cellules[joueurs[tour].x][joueurs[tour].y-1].etat != etat.submergee || joueurs[tour].role == roles.plongeurRate)  && joueurs[tour].y-1 > 0) {
+			cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
 			joueurs[tour].y-=1;
 			nbActions++;
 		}
-		else if (k == KeyEvent.VK_DOWN && cellules[joueurs[tour].x][joueurs[tour].y+1].etat != etat.submergee && joueurs[tour].y+1 <= HAUTEUR) {
+		else if (k == KeyEvent.VK_DOWN && (cellules[joueurs[tour].x][joueurs[tour].y+1].etat != etat.submergee || joueurs[tour].role == roles.plongeurRate)  && joueurs[tour].y+1 <= HAUTEUR) {
+			cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
 			joueurs[tour].y+=1;
 			nbActions++;
 		}
+		else if(joueurs[tour].role == roles.plongeur) {
+	    	if(k == KeyEvent.VK_RIGHT && cellules[joueurs[tour].x+1][joueurs[tour].y].etat == etat.submergee && cellules[joueurs[tour].x+2][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x+2 <= LARGEUR) {
+	    		cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+	    		joueurs[tour].x+=2;
+				nbActions++;
+			}
+			else if(k == KeyEvent.VK_LEFT && cellules[joueurs[tour].x-1][joueurs[tour].y].etat == etat.submergee && cellules[joueurs[tour].x-2][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x-2 > 0) {
+				cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+				joueurs[tour].x-=2;
+				nbActions++;
+			}
+			else if(k == KeyEvent.VK_UP && cellules[joueurs[tour].x][joueurs[tour].y-1].etat == etat.submergee && cellules[joueurs[tour].x][joueurs[tour].y-2].etat != etat.submergee && joueurs[tour].y-2 > 0) {
+				cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+				joueurs[tour].y-=2;
+				nbActions++;
+			}
+			else if (k == KeyEvent.VK_DOWN && cellules[joueurs[tour].x][joueurs[tour].y+1].etat == etat.submergee && cellules[joueurs[tour].x][joueurs[tour].y+2].etat != etat.submergee && joueurs[tour].y+2 <= HAUTEUR) {
+				cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+				joueurs[tour].y+=2;
+				nbActions++;
+			}
+	    }
 	    for (int i = 0; i < nbJoueurs; i++) {
 	    	cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = true;
 	    }
+    	}
+	    
 	    //Si le joueur a épuisé toutes ses actions, on passe au tour suivant
     	if (nbActions == 3) {
     		tourSuivant();
     	}
 	    	notifyObservers();
     }
+    
+    public void pilote(Joueur j, int xx, int yy) {
+    	//if(j.role == roles.pilote && nbPilotages == 0) {
+    	if(j.role == roles.pilote) {
+    		cellules[j.x][j.y].presenceJoueur = false;
+    		j.x=xx;
+    		j.y=yy;
+    		//nbPilotages++;
+    		nbActions++;
+    	    cellules[j.x][j.y].presenceJoueur = true;
+    		if (nbActions == 3) {
+        		tourSuivant();
+        	}
+    	}
+    	notifyObservers();
+    }
+    
+    public void explore(Joueur j, int xx, int yy) {
+    	cellules[j.x][j.y].presenceJoueur = false;
+    	if(j.role == roles.explorateur) {
+    		if((j.x-1 == xx || j.x+1 == xx) && (j.y-1 == yy || j.y+1 == yy)) {
+	    		j.x=xx;
+	    		j.y=yy;
+	    		nbActions++;
+	    		cellules[j.x][j.y].presenceJoueur = true;
+	    		if (nbActions == 3) {
+	        		tourSuivant();
+	        	}
+	    	}
+    	notifyObservers();
+    	}
+    }
+
+  
     
     /**
      * Asseche la zone demandée par le joueur
@@ -377,8 +455,14 @@ class CModele extends Observable {
 	    	if(cellules[x][y].etat == etat.inondee && x <= LARGEUR && x > 0 && y <= HAUTEUR && y > 0) {
 	    		cellules[x][y].etat = etat.normale;
 	    		nbActions+=1;
+	    		if(joueurs[tour].role == roles.ingenieur) nbActions -= 0.5;
+	    		/*if(joueurs[tour].role != roles.ingenieur) {
+	    			nbAssechementsIngenieur += 1;
+	    		if(nbAssechementsIngenieur == 2) nbActions -= 1; */
+	    		//}
 	    	}
     	}
+	    	
     	//Sinon, on vérifie que le joueur possède bien un sac de sable et que la zone qu'il souhaite assécher est bien
     	//inondée, si c'est le cas, on lui retire un sac de sable
     	else {
@@ -426,7 +510,7 @@ class CModele extends Observable {
     		artefacts[3] = tour+1;
     	}
     	//Si le joueur a épuisé toutes ses actions, on passe au tour suivant
-    	if (nbActions == 3) {
+    	if (nbActions >= 2.5) {
     		tourSuivant();
     	}
     	notifyObservers();
@@ -531,21 +615,25 @@ class CModele extends Observable {
     public void prendreHelicoptere(int xDestination, int yDestination) {
     	//On indique que le joueur se déplace
     	cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
-    	//On vérifie que le joueur possède bien un hélicoptère et que la zone ou il veut se rendre n'est pas submergée
-    	if(joueurs[tour].helicoptere > 0 && cellules[xDestination][yDestination].etat != etat.submergee) {
-    		for (int i = 0; i < nbJoueurs; i++) {
-    			if (i != tour && joueurs[i].x == joueurs[tour].x && joueurs[i].y == joueurs[tour].y) {
-    				joueurs[i].x = xDestination;
-    	    		joueurs[i].y = yDestination;
-    			}
-    		}
-    		joueurs[tour].x = xDestination;
-    		joueurs[tour].y = yDestination;
-    		joueurs[tour].helicoptere-=1;
+    	//if(joueurs[tour].role != roles.pilote) {
+    	if(joueurs[tour].role == roles.explorateur && (joueurs[tour].x-1 == xDestination || joueurs[tour].x+1 == xDestination) && (joueurs[tour].y-1 == yDestination || joueurs[tour].y+1 == yDestination) && nbActions <= 2) { 
+    		explore(joueurs[tour], xDestination, yDestination);
     	}
-    	//On indique le nouvel emplacement du joueur
-    	cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = true;
-    	notifyObservers();
+	    	//On vérifie que le joueur possède bien un hélicoptère et que la zone ou il veut se rendre n'est pas submergée
+    	else if(joueurs[tour].helicoptere > 0 && cellules[xDestination][yDestination].etat != etat.submergee) {
+	   		for (int i = 0; i < nbJoueurs; i++) {
+	   			if (i != tour && joueurs[i].x == joueurs[tour].x && joueurs[i].y == joueurs[tour].y) {
+	   				joueurs[i].x = xDestination;
+	   	    		joueurs[i].y = yDestination;
+    			}	    		}
+	    		joueurs[tour].x = xDestination;
+	    		joueurs[tour].y = yDestination;
+	    		joueurs[tour].helicoptere-=1;
+	    	}
+	    	//On indique le nouvel emplacement du joueur
+	    	cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = true;
+	    	notifyObservers();
+    	//}
     }
     
 
@@ -602,13 +690,15 @@ class Joueur{
 	protected int sacSable;
 	//Position du joueur
 	protected int x, y;
+	protected roles role;
 	//On conserve un pointeur cers la classe principale du modèle
 	private CModele modele;
 	
-	public Joueur(CModele modele, int x, int y) {
+	public Joueur(CModele modele, int x, int y, roles r) {
 		this.modele = modele;
 		this.x = x;
 		this.y = y;
+		this.role = r;
 		//Au début de la partie, le joueur ne possède rien
 		cleEau = 0;
 		cleFeu = 0;
