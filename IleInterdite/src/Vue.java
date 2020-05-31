@@ -1,8 +1,11 @@
+package ilEiNTERDITE;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.io.File;
@@ -40,7 +43,7 @@ class CVue {
 	frame.setTitle(" L'île interdite ");
 	JPanel text = new JPanel();
 	text.setLayout(new BoxLayout(text, BoxLayout.LINE_AXIS));
-    text.add(new JLabel("Cliquer pour assécher une zone inondée"));
+    text.add(new JLabel("Cliquer sur un bouton pour assécher une zone inondée"));
     JPanel bouton = new JPanel();
 	frame.setLayout(new FlowLayout());
 	grille = new VueGrille(modele);
@@ -87,11 +90,26 @@ class VueCommandes extends JPanel {
 		JButton Asseche = new JButton("o");
 		JButton AssecheGauche = new JButton("g");
 		JButton AssecheDroite = new JButton("d"); 
+		JButton AssecheHautGauche = new JButton("hg");
+		JButton AssecheHautDroite = new JButton("hd");
+		JButton AssecheBasGauche = new JButton("bg");
+		JButton AssecheBasDroite = new JButton("bd"); 
 		this.add(AssecheHaut);
 		this.add(AssecheBas);
 		this.add(Asseche);
 		this.add(AssecheGauche);
 		this.add(AssecheDroite);
+		//if(modele.getJoueurs(modele.getTour()).role == roles.explorateur) {
+			this.add(AssecheHautDroite);
+			this.add(AssecheHautGauche);
+			this.add(AssecheBasDroite);
+			this.add(AssecheBasGauche);
+		//}
+		/*this.add(AssecheHautDroite);
+		this.add(AssecheHautGauche);
+		this.add(AssecheBasGauche);
+		this.add(AssecheBasDroite);*/
+		AssecheGauche.setLocation(Frame.WIDTH/2, -Frame.HEIGHT/2);
 		JButton abandon = new JButton("Abandonner");
 		this.add(abandon);
 		Controleur ctrl = new Controleur(modele);
@@ -106,7 +124,16 @@ class VueCommandes extends JPanel {
 		AssecheBas.addKeyListener(ctrl);
 		Asseche.addKeyListener(ctrl);
 		AssecheGauche.addKeyListener(ctrl);
-		abandon.addActionListener(ctrl);	
+		abandon.addActionListener(ctrl);
+		
+		AssecheHautDroite.addActionListener(ctrl);
+		AssecheBasDroite.addActionListener(ctrl);
+		AssecheBasGauche.addActionListener(ctrl);
+		AssecheHautGauche.addActionListener(ctrl);
+		AssecheHautDroite.addKeyListener(ctrl);
+		AssecheBasDroite.addKeyListener(ctrl);
+		AssecheBasGauche.addKeyListener(ctrl);
+		AssecheHautGauche.addKeyListener(ctrl);
     }
 }
 
@@ -295,13 +322,14 @@ class VuePlayer extends JPanel implements Observer {
     public VuePlayer(CModele modele) {
 	this.modele = modele;
 	modele.addObserver(this);
-  	int actions = modele.getNbActions();  //actions
+  	float actions = modele.getNbActions();  //actions
   	this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
   	this.add(new JLabel("Nombre de joueurs: " + modele.nbJoueurs));
   	this.add(new JLabel("Au tour du joueur: " + (modele.getTour()+1)));
   	this.add(new JLabel("Nombre d'actions restantes: " + (3-actions)));
   	for (int i = 0; i < modele.nbJoueurs; i++) {
-  		this.add(new JLabel("Joueur " + (i+1) + " : " + 
+  		this.add(new JLabel("Joueur " + (i+1) + " (" + 
+  				modele.getJoueurs(i).role +") : " + 
   				modele.getJoueurs(i).cleEau + " Clés eau, " + 
   				modele.getJoueurs(i).cleAir + " Clés air, " + 
   				modele.getJoueurs(i).cleFeu + " Clés feu, " + 
@@ -317,16 +345,17 @@ class VuePlayer extends JPanel implements Observer {
 
     public void update() { 
     	this.removeAll();
-    	int actions = modele.getNbActions();  //actions
+    	float actions = modele.getNbActions();  //actions
     	this.add(new JLabel("Nombre de joueurs: " + modele.nbJoueurs));
       	this.add(new JLabel("Au tour du joueur: " + (modele.getTour()+1)));
       	this.add(new JLabel("Nombre d'actions restantes: " + (3-actions)));
       	for (int i = 0; i < modele.nbJoueurs; i++) {
-      		this.add(new JLabel("Joueur " + (i+1) + " : " + 
+      		this.add(new JLabel("Joueur " + (i+1) + " (" + 
+      				modele.getJoueurs(i).role +") : " + 
       				modele.getJoueurs(i).cleEau + " Clés eau, " + 
       				modele.getJoueurs(i).cleAir + " Clés air, " + 
       				modele.getJoueurs(i).cleFeu + " Clés feu, " + 
-      				modele.getJoueurs(i).cleTerre + " Clés terre, " + 
+      				modele.getJoueurs(i).cleTerre + " Clés terre, " +
       				modele.getJoueurs(i).helicoptere + " Hélicoptères, " +
       				modele.getJoueurs(i).sacSable + " Sacs de sable "));
       	}
