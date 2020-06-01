@@ -4,12 +4,16 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
-
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.swing.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
+////////////////////Schéma observateur/observé////////////////////
 
 /**
  * Interface des objets observateurs.
@@ -35,13 +39,12 @@ abstract class Observable {
      * viennent s'inscrire les observateurs via la méthode [addObserver].
      */
     private ArrayList<Observer> observers;
-    public Observable() {
-	this.observers = new ArrayList<Observer>();
-    }
+	public Observable() {
+	    this.observers = new ArrayList<Observer>();
+	}
     public void addObserver(Observer o) {
-	observers.add(o);
+    	observers.add(o);
     }
-
     /**
      * Lorsque l'état de l'objet observé change, il est convenu d'appeler la
      * méthode [notifyObservers] pour prévenir l'ensemble des observateurs
@@ -50,13 +53,15 @@ abstract class Observable {
      * observateur.
      */
     public void notifyObservers() {
-	for(Observer o : observers) {
-	    o.update();
-	}
+		for(Observer o : observers) {
+		    o.update();
+		}
     }
 }
-/** Fin du schéma observateur/observé. */
 
+////////////////////Fin schéma observateur/observé////////////////////
+
+////////////////////Classe principale////////////////////
 
 /**
  * Nous allons commencer à construire notre application, en voici la classe
@@ -76,22 +81,14 @@ public class IleInterdite {
 	 * incantation qu'on pourra expliquer plus tard.
 	 */
     	EventQueue.invokeLater(() -> {
-    		/** Voici le contenu qui nous intéresse. */
-    				
-    				CVueMenu vueMenu = new CVueMenu();
-    				/**while(true) {
-    					if(vueMenu.resultat != 0) {
-    						CModele modele = new CModele(vueMenu.resultat);
-    						CVue vue = new CVue(modele); 
-    						break;
-    					}
-    					
-    				}*/
-    	    });
+    		new CVueMenu();
+    	});
     }
 }
-/** Fin de la classe principale. */
+////////////////////Fin classe principale////////////////////
 
+
+////////////////////Classe principale modèle////////////////////
 
 /**
  * Le modèle : le coeur de l'application.
@@ -102,41 +99,26 @@ public class IleInterdite {
  * Voir la méthode [avance()] pour cela.
  */
 class CModele extends Observable {
-    /** On fixe la taille de la grille. */
+    //On fixe la taille de la grille.
     public static final int HAUTEUR=10, LARGEUR=15;
-    /** On stocke un tableau de cellules. */
+    //On stocke un tableau de cellules. 
     private Cellule[][] cellules;
-    public int nbJoueurs;
+    public final int nbJoueurs;
+    //Le tableau des joueurs
     private Joueur[] joueurs;
+    //Le numéro du joueur dont c'est le tour
     private int tour;
-    int[] artefacts = new int[4];
-    //boolean defaite = false;
-    boolean abandon = false;
-    /*boolean heliportRecouvert = false;
-    boolean manaAirRecouvert = false;
-    boolean manaTerreRecouvert = false;
-    boolean manaFeuRecouvert = false;
-    boolean manaEauRecouvert = false;*/
-    //boolean joueurCoince = false;
-    boolean[] joueursCoinces = new boolean[4];
-    
-    public Joueur[] getJoueurs() {
-		return joueurs;
-	}
-
-	public int getTour() {
-		return tour;
-	}
+    //Le numéro du joueur qui possède cet artéfact
+    private int[] artefacts = new int[4];
+    private boolean abandon = false;
+    private boolean[] joueursCoinces = new boolean[4];
+    private float nbActions;
+    private Cartes<int[]> paquetZone = new Cartes(this);
+    private Cartes<evenement> paquetEvent = new Cartes(this);
 
 	/** Construction : on initialise un tableau de cellules. **/
     public CModele(int nbJoueurs) {
-	/**
-	 * Pour éviter les problèmes aux bords, on ajoute une ligne et une
-	 * colonne de chaque côté, dont les cellules n'évolueront pas.
-	 */ 
-    	/*for (int i = 0; i < nbJoueurs; i++) {
-    		joueursCoinces[i] = false;
-    	}*/
+    	//Au début de la partie, aucun joueur ne possède d'artéfact
     	for (int i = 0; i < 4; i++) {
     		artefacts[i] = -1;
     	}
@@ -147,8 +129,20 @@ class CModele extends Observable {
     	joueurs = new Joueur[nbJoueurs];
     	int x = (int)(Math.random() * LARGEUR + 1);
     	int y = (int)(Math.random() * HAUTEUR + 1);
-    	for (int i = 0; i < nbJoueurs; i++) {
-    		joueurs[i] = new Joueur(x, y);
+    	//Tous les joueurs commencent à l'héliport
+    	List<roles> rolesPossibles = new ArrayList<>(); 
+        rolesPossibles.add(roles.ingenieur); 
+        rolesPossibles.add(roles.messager);
+        rolesPossibles.add(roles.plongeur);
+        rolesPossibles.add(roles.explorateur);
+        rolesPossibles.add(roles.pilote);
+        
+    	for(int i = 0; i < nbJoueurs; i++) {
+    		joueurs[i] = new Joueur(this, x, y, roles.aucun);
+    		int a = ThreadLocalRandom.current().nextInt(0, rolesPossibles.size());
+    		//Décommenter la ligne suivante pour activer les rôles
+    		//joueurs[i] = new Joueur(this, x, y, rolesPossibles.get(a));
+    		rolesPossibles.remove(a);
     	}
 	    tour = 0;
 		cellules = new Cellule[LARGEUR+2][HAUTEUR+2];
@@ -161,9 +155,66 @@ class CModele extends Observable {
 				}
 		    }
 		}
+		//On initialise le terrain
 		init();
+		for (int i = 0; i < LARGEUR; i++) {
+			for (int j = 0; j < HAUTEUR; j++) {
+				int[] zone = {i, j};
+				paquetZone.ajouterPaquet(zone);
+			}
+		}
+		//On initialise les paquets de cartes
+		paquetZone.melanger();
+		for (int i = 0; i < 5; i++) {
+			paquetEvent.ajouterPaquet(evenement.helicoptere);
+			paquetEvent.ajouterPaquet(evenement.sacSable);
+		}
+		for (int i = 0; i < 8; i++) {
+			paquetEvent.ajouterPaquet(evenement.cleAir);
+			paquetEvent.ajouterPaquet(evenement.cleEau);
+			paquetEvent.ajouterPaquet(evenement.cleTerre);
+			paquetEvent.ajouterPaquet(evenement.cleFeu);
+		}
+		for (int i = 0; i < 15; i++) {
+			paquetEvent.ajouterPaquet(evenement.monteeEaux);
+		}
+		for (int i = 0; i < 43; i++) {
+			paquetEvent.ajouterPaquet(evenement.rien);
+		}
+		paquetEvent.melanger();
     }
+    
+    /**
+     * Donne le (n+1)-ième joueur
+     * @param : n le numéro du joueur dans le tableau de joueurs
+     * @return : Le (n+1)-ième joueur
+     */
+    public Joueur getJoueurs(int n) { return joueurs[n]; }
 
+    /**
+     * Donne le numéro du tour
+     * @return : le numéro du tour
+     */
+	public int getTour() { return tour; }
+	
+	/**
+	 * Provoque l'abandon
+	 */
+	public void abandonner() { this.abandon = true; }
+	
+	/**
+	 * Donne le numéro du joueur qui possède l'artéfact
+	 * @param n : le numéro de l'artéfact
+	 * @return : le numéro du joueur possédant l'artéfact n
+	 */
+	public int getArtefact(int n) {return this.artefacts[n];}
+	
+	/**
+	 * Donne le nombre d'actions effectuées ce tour
+	 * @return Le nombre d'actions effectuées ce tour
+	 */
+	public float getNbActions() {return this.nbActions; }
+	
     /**
      * Initialisation aléatoire des cellules, exceptées celle des bords qui
      * ont été ajoutés.
@@ -171,6 +222,7 @@ class CModele extends Observable {
     public void init() {
     	int xeau =(int)(Math.random() * LARGEUR + 1);
     	int yeau = (int)(Math.random() * HAUTEUR + 1);	
+    	//On vérifie que l'héliport ne se trouve pas déjà à cet endroit
     	while(cellules[xeau][yeau].type != elements.autre) {
 			xeau =(int)(Math.random() * LARGEUR + 1);
 	    	yeau= (int)(Math.random() * HAUTEUR + 1);
@@ -178,6 +230,7 @@ class CModele extends Observable {
     	cellules[xeau][yeau].type = elements.eau;
     	int xair =(int)(Math.random() * LARGEUR + 1);
     	int yair = (int)(Math.random() * HAUTEUR + 1);
+    	//On vérifie que l'héliport ou un autre artéfact ne se trouve pas déjà à cet endroit
 		while(cellules[xair][yair].type != elements.autre) {
 			xair =(int)(Math.random() * LARGEUR + 1);
 	    	yair = (int)(Math.random() * HAUTEUR + 1);
@@ -185,6 +238,7 @@ class CModele extends Observable {
 		cellules[xair][yair].type = elements.air;
 		int xfeu =(int)(Math.random() * LARGEUR + 1);
     	int yfeu = (int)(Math.random() * HAUTEUR + 1);
+    	//On vérifie que l'héliport ou un autre artéfact ne se trouve pas déjà à cet endroit
 		while(cellules[xfeu][yfeu].type != elements.autre) {
 			xfeu =(int)(Math.random() * LARGEUR + 1);
 	    	yfeu = (int)(Math.random() * HAUTEUR + 1);
@@ -192,6 +246,7 @@ class CModele extends Observable {
     	cellules[xfeu][yfeu].type = elements.feu;
 		int xterre =(int)(Math.random() * LARGEUR + 1);
     	int yterre = (int)(Math.random() * HAUTEUR + 1);
+    	//On vérifie que l'héliport ou un autre artéfact ne se trouve pas déjà à cet endroit
 		while(cellules[xterre][yterre].type != elements.autre) {
 			xterre =(int)(Math.random() * LARGEUR + 1);
 	    	yterre = (int)(Math.random() * HAUTEUR + 1);
@@ -200,33 +255,36 @@ class CModele extends Observable {
     }
 
     /**
-     * Calcul de la génération suivante.
+     * Passage au tour suivant
      */
-    public void avance() {
+   /** public void tourSuivant() {
+    	// On submerge trois cellules au hasard
 		int x0 = (int)(Math.random() * LARGEUR + 1);
 		int y0 = (int)(Math.random() * HAUTEUR + 1);
-		int x1 = (int)(Math.random() * LARGEUR + 1);
-		int y1 = (int)(Math.random() * HAUTEUR + 1);
-		int x2 = (int)(Math.random() * LARGEUR + 1);
-		int y2 = (int)(Math.random() * HAUTEUR + 1);
+		//On vérifie que les cellules qu'on submerge ne le sont pas déjà
 		while(cellules[x0][y0].etat == etat.submergee) {
 			x0 = (int)(Math.random() * LARGEUR + 1);
 			y0 = (int)(Math.random() * HAUTEUR + 1);
 		}
-		while(cellules[x1][y1].etat == etat.submergee) {
-			x1 = (int)(Math.random() * LARGEUR + 1);
-			y1 = (int)(Math.random() * HAUTEUR + 1);
-		}
-		while(cellules[x2][y2].etat == etat.submergee) {
-			x2 = (int)(Math.random() * LARGEUR + 1);
-			y2 = (int)(Math.random() * HAUTEUR + 1);
+		if(cellules[x0][y0].etat == etat.normale) cellules[x0][y0].etat = etat.inondee;
+		else cellules[x0][y0].etat = etat.submergee;
+		x0 = (int)(Math.random() * LARGEUR + 1);
+		y0 = (int)(Math.random() * HAUTEUR + 1);
+		while(cellules[x0][y0].etat == etat.submergee) {
+			x0 = (int)(Math.random() * LARGEUR + 1);
+			y0 = (int)(Math.random() * HAUTEUR + 1);
 		}
 		if(cellules[x0][y0].etat == etat.normale) cellules[x0][y0].etat = etat.inondee;
 		else cellules[x0][y0].etat = etat.submergee;
-		if(cellules[x1][y1].etat == etat.normale) cellules[x1][y1].etat = etat.inondee;
-		else cellules[x1][y1].etat = etat.submergee;
-		if(cellules[x2][y2].etat == etat.normale) cellules[x2][y2].etat = etat.inondee;
-		else cellules[x2][y2].etat = etat.submergee;
+		x0 = (int)(Math.random() * LARGEUR + 1);
+		y0 = (int)(Math.random() * HAUTEUR + 1);
+		while(cellules[x0][y0].etat == etat.submergee) {
+			x0 = (int)(Math.random() * LARGEUR + 1);
+			y0 = (int)(Math.random() * HAUTEUR + 1);
+		}
+		if(cellules[x0][y0].etat == etat.normale) cellules[x0][y0].etat = etat.inondee;
+		else cellules[x0][y0].etat = etat.submergee;
+		//Si un joueur se trouve sur une cellule submergée, on le fait s'échapper
 		for (int i = 0; i < nbJoueurs; i++) {
 			if (cellules[joueurs[i].x][joueurs[i].y].etat == etat.submergee) {
 				ArrayList<int[]> echapatoire = new ArrayList<int[]>();
@@ -260,6 +318,7 @@ class CModele extends Observable {
 				}
 			}
 		}
+		//On donne aléatoirement une clé ou un sac de sable ou un hélicoptère au joueur qui finit son tour
 		double a = Math.random();
 		double b = Math.random();
 		if (a < 0.3) {
@@ -273,7 +332,93 @@ class CModele extends Observable {
 			else joueurs[tour].sacSable+=1;
 		}
 		tour=(tour+1)%nbJoueurs;
-		joueurs[tour].nbActions = 0;
+	    nbActions = 0;
+		/**
+		 * Pour finir, le modèle ayant changé, on signale aux observateurs
+		 * qu'ils doivent se mettre à jour.
+		 */
+		/**notifyObservers();
+    }**/
+    
+    public void tourSuivant() {
+    	evenement FinTour = paquetEvent.tirer();
+    	switch (FinTour) {
+    	case rien :
+    		break;
+    	case cleEau :
+    		joueurs[tour].cleEau++;
+    		break;
+    	case cleAir :
+    		joueurs[tour].cleAir++;
+    		break;
+    	case cleFeu :
+    		joueurs[tour].cleFeu++;
+    		break;
+    	case cleTerre :
+    		joueurs[tour].cleTerre++;
+    		break;
+    	case monteeEaux :
+    		if (cellules[joueurs[tour].x][joueurs[tour].y].etat == etat.inondee) 
+    			cellules[joueurs[tour].x][joueurs[tour].y].etat = etat.submergee;
+    		else cellules[joueurs[tour].x][joueurs[tour].y].etat = etat.inondee;
+    		paquetZone.viderDefausse();
+    		break;
+    	case helicoptere :
+    		joueurs[tour].helicoptere++;
+    		break;
+    	case sacSable :
+    		joueurs[tour].sacSable++;
+    		break;
+    	}
+    	paquetEvent.ajouterDefausse(FinTour);
+    	if(paquetEvent.estVide()) paquetEvent.viderDefausse();
+    	for (int i = 0; i < 3; i++) {
+    		int[] zone = paquetZone.tirer();
+    		if (cellules[zone[0]][zone[1]].etat == etat.inondee) {
+    			cellules[zone[0]][zone[1]].etat = etat.submergee;
+    		}
+    		else {
+    			cellules[zone[0]][zone[1]].etat = etat.inondee;
+    			paquetZone.ajouterDefausse(zone);
+    		}
+    	}
+    	if(paquetZone.estVide()) paquetZone.viderDefausse();
+		//Si un joueur se trouve sur une cellule submergée, on le fait s'échapper
+		for (int i = 0; i < nbJoueurs; i++) {
+			if (cellules[joueurs[i].x][joueurs[i].y].etat == etat.submergee) {
+				ArrayList<int[]> echapatoire = new ArrayList<int[]>();
+				int[] pos = new int[2];
+				if(cellules[joueurs[i].x-1][joueurs[i].y].etat != etat.submergee) {
+					pos[0] = joueurs[i].x-1;
+					pos[1] = joueurs[i].y;
+					echapatoire.add(pos);}
+				if(cellules[joueurs[i].x+1][joueurs[i].y].etat != etat.submergee) {
+					pos[0] = joueurs[i].x+1;
+					pos[1] = joueurs[i].y;
+					echapatoire.add(pos);
+				}
+				if(cellules[joueurs[i].x][joueurs[i].y-1].etat != etat.submergee) {
+					pos[0] = joueurs[i].x;
+					pos[1] = joueurs[i].y-1;
+					echapatoire.add(pos);
+				}
+				if(cellules[joueurs[i].x][joueurs[i].y+1].etat != etat.submergee) {
+					pos[0] = joueurs[i].x;
+					pos[1] = joueurs[i].y+1;
+					echapatoire.add(pos);
+				}
+				if (echapatoire.size() == 0) this.joueursCoinces[i] = true;
+				else {
+					cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = false;
+					int a = (int)(Math.random()*echapatoire.size());
+					joueurs[i].x = echapatoire.get(a)[0];
+					joueurs[i].y = echapatoire.get(a)[1];
+					cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = true;
+				}
+			}
+		}
+		tour=(tour+1)%nbJoueurs;
+	    nbActions = 0;
 		/**
 		 * Pour finir, le modèle ayant changé, on signale aux observateurs
 		 * qu'ils doivent se mettre à jour.
@@ -281,108 +426,203 @@ class CModele extends Observable {
 		notifyObservers();
     }
     
+    /**
+     * Déplace le joueur dans la direction qu'il désire
+     * @param k : le code entier de la direction désirée
+     */
     public void deplace(int k) {
+    	if(nbActions + 1 > 3) {
+    		tourSuivant();
+    		return;
+    	}
+    	//On indique que le joueur se déplace
 		cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+		//On vérifie que la case ou il souhaite aller n'est pas submergée ou hors du terrain
 		if(k == KeyEvent.VK_RIGHT && cellules[joueurs[tour].x+1][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x+1 <= LARGEUR) {
 			joueurs[tour].x+=1;
-			joueurs[tour].nbActions++;
+			nbActions = (int)(nbActions + 1.5);
 		}
 		else if(k == KeyEvent.VK_LEFT && cellules[joueurs[tour].x-1][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x-1 > 0) {
 			joueurs[tour].x-=1;
-			joueurs[tour].nbActions++;
+			nbActions = (int)(nbActions + 1.5);
 		}
 		else if(k == KeyEvent.VK_UP && cellules[joueurs[tour].x][joueurs[tour].y-1].etat != etat.submergee && joueurs[tour].y-1 > 0) {
 			joueurs[tour].y-=1;
-			joueurs[tour].nbActions++;
+			nbActions = (int)(nbActions + 1.5);
 		}
 		else if (k == KeyEvent.VK_DOWN && cellules[joueurs[tour].x][joueurs[tour].y+1].etat != etat.submergee && joueurs[tour].y+1 <= HAUTEUR) {
 			joueurs[tour].y+=1;
-			joueurs[tour].nbActions++;
+			nbActions = (int)(nbActions + 1.5);
 		}
+		else if(joueurs[tour].role == roles.plongeur) {
+	    	if(k == KeyEvent.VK_RIGHT && cellules[joueurs[tour].x+1][joueurs[tour].y].etat == etat.submergee && cellules[joueurs[tour].x+2][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x+2 <= LARGEUR) {
+	    		cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+	    		joueurs[tour].x+=2;
+	    		nbActions = (int)(nbActions + 1.5);
+			}
+			else if(k == KeyEvent.VK_LEFT && cellules[joueurs[tour].x-1][joueurs[tour].y].etat == etat.submergee && cellules[joueurs[tour].x-2][joueurs[tour].y].etat != etat.submergee && joueurs[tour].x-2 > 0) {
+				cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+				joueurs[tour].x-=2;
+				nbActions = (int)(nbActions + 1.5);
+			}
+			else if(k == KeyEvent.VK_UP && cellules[joueurs[tour].x][joueurs[tour].y-1].etat == etat.submergee && cellules[joueurs[tour].x][joueurs[tour].y-2].etat != etat.submergee && joueurs[tour].y-2 > 0) {
+				cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+				joueurs[tour].y-=2;
+				nbActions = (int)(nbActions + 1.5);
+			}
+			else if (k == KeyEvent.VK_DOWN && cellules[joueurs[tour].x][joueurs[tour].y+1].etat == etat.submergee && cellules[joueurs[tour].x][joueurs[tour].y+2].etat != etat.submergee && joueurs[tour].y+2 <= HAUTEUR) {
+				cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+				joueurs[tour].y+=2;
+				nbActions = (int)(nbActions + 1.5);
+			}
+	    }
 	    for (int i = 0; i < nbJoueurs; i++) {
 	    	cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = true;
 	    }
-    	if (joueurs[tour].nbActions == 3) {
-    		avance();
-    	}
-	    	notifyObservers();
+	    //Si le joueur a épuisé toutes ses actions, on passe au tour suivant
+    	if (nbActions >= 3) tourSuivant();
+	    notifyObservers();
     }
     
+    /**
+     * Active le pouvoir du joueur
+     * @param x : l'abscisse de la case visée
+     * @param y : l'ordonnée de la case visée
+     */
+    public void utilisePouvoir(int x, int y) {
+    	if (joueurs[tour].role == roles.pilote) pilote(x, y);
+    	if (joueurs[tour].role == roles.explorateur) explore(x, y);
+    }
+    
+    /**
+     * Utilise le pouvoir du pilote
+     * @param xx : l'abscisse de la zone ou le joueur va se rendre
+     * @param yy : l'ordonnée de la zone où le joueur va le rendre
+     */
+    public void pilote(int xx, int yy) {
+    	//On vérifie que la zone n'est pas submergée
+    	if(cellules[xx][yy].etat != etat.submergee) {
+	    	cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+	    	joueurs[tour].x=xx;
+	    	joueurs[tour].y=yy;
+	    	//Comme le pouvoir du pilote est fort, nous avons décidé qu'il couterait deux actions
+	    	nbActions+=2;
+	    	cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = true;
+	    	if (nbActions >= 3) tourSuivant();
+    	}
+    	notifyObservers();
+    }
+    
+    /**
+     * Utilise le pouvoir de l'explorateur
+     * @param xx : l'abscisse de la zone où le joueur va se rendre
+     * @param yy : l'ordonnée de la zone où le joueur va se rendre
+     */
+    public void explore(int xx, int yy) {
+    	//On vérifie que la zone est accessible à l'explorateur
+    	if(xx <= joueurs[tour].x+1 && xx >= joueurs[tour].x - 1 && yy <= joueurs[tour].y+1 && yy >= joueurs[tour].y-1
+    			&& (joueurs[tour].x != xx || joueurs[tour].y != yy)
+    			&& cellules[xx][yy].etat != etat.submergee) {
+    		    cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+	    		joueurs[tour].x=xx;
+	    		joueurs[tour].y=yy;
+	    		nbActions++;
+	    		cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = true;
+	    		if (nbActions >= 3) tourSuivant();
+    	notifyObservers();
+    	}
+    }
+    
+    /**
+     * Asseche la zone demandée par le joueur
+     * @param sac : indique si le joueur utilise ou non un sac de sable
+     * @param x : l'abscisse de la case à assécher
+     * @param y : l'ordonnée de la case à assécher
+     */
     public void asseche(boolean sac, int x, int y) {
+    	//Si le joueur n'utilise pas un sac de sable, on vérifie que la zone qu'il souhaite assécher est bien
+    	//inondée et dans le terrain
     	if (!sac) {
 	    	if(cellules[x][y].etat == etat.inondee && x <= LARGEUR && x > 0 && y <= HAUTEUR && y > 0) {
 	    		cellules[x][y].etat = etat.normale;
-	    		joueurs[tour].nbActions+=1;
+	    		nbActions+=1;
+	    		if(joueurs[tour].role == roles.ingenieur) nbActions -= 0.5;
 	    	}
     	}
+    	//Sinon, on vérifie que le joueur possède bien un sac de sable et que la zone qu'il souhaite assécher est bien
+    	//inondée, si c'est le cas, on lui retire un sac de sable
     	else {
     		if (joueurs[tour].sacSable > 0 && cellules[x][y].etat == etat.inondee) {
     			cellules[x][y].etat = etat.normale;
     			joueurs[tour].sacSable-=1;
     		}
     	}
-    	if (joueurs[tour].nbActions == 3) {
-    		avance();
-    	}
+    	//Si le joueur a épuisé toutes ses actions, on passe au tour suivant
+    	if (nbActions >= 3) tourSuivant();
 	    	notifyObservers();
 	   
     }
     
+    /**
+     * Récupère un artéfact
+     */
     public void recupere() {
+    	if(nbActions + 1 > 3) {
+    		tourSuivant();
+    		return;
+    	}
+    	//On vérifie que le joueur se situe bien sur la zone de l'artéfact et qu'il possède assez de clés pour le 
+    	//récupérer et si c'est le cas, on retire l'artéfact du terrain
     	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.eau && joueurs[tour].cleEau >= 4) {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleEau = 0;
-    		joueurs[tour].nbActions++;
+    		nbActions = (int)(nbActions + 1.5);
     		artefacts[0] = tour+1;
     	}
     	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.air && joueurs[tour].cleAir >= 4) {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleAir = 0;
-    		joueurs[tour].nbActions++;
+    		nbActions = (int)(nbActions + 1.5);
     		artefacts[1] = tour+1;
     	}
     	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.feu && joueurs[tour].cleFeu >= 4) {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleFeu = 0;
-    		joueurs[tour].nbActions++;
+    		nbActions = (int)(nbActions + 1.5);
     		artefacts[2] = tour+1;
     	}
     	if (cellules[joueurs[tour].x][joueurs[tour].y].type == elements.terre && joueurs[tour].cleTerre >= 4) {
     		cellules[joueurs[tour].x][joueurs[tour].y].type = elements.autre;
     		joueurs[tour].cleTerre = 0;
-    		joueurs[tour].nbActions++;
+    		nbActions = (int)(nbActions + 1.5);
     		artefacts[3] = tour+1;
     	}
-    	if (joueurs[tour].nbActions == 3) {
-    		avance();
-    	}
+    	//Si le joueur a épuisé toutes ses actions, on passe au tour suivant
+    	if (nbActions >= 3) tourSuivant();
     	notifyObservers();
     }
     
+    /**
+     * Vérifie si les joueurs ont gagné
+     * @return true si les joueurs ont gagné, false sinon
+     */
     public boolean victoire() {
+    	//On vérifie que tous les artéfacts ont été récupérés
     	for(int i = 0; i < 4; i++) {
     		if(artefacts[i] == -1) return false;
     	}
+    	//On vérifie que tous les joueurs sont bien à l'héliport
     	for (int i = 0; i < nbJoueurs; i++) {
     		if(cellules[joueurs[i].x][joueurs[i].y].type != elements.heliport) return false;
     	}
     	return true;
     }
     
-    public int defaite() {
-    	/*if(this.manaAirRecouvert) return 1; 
-    	if(this.manaTerreRecouvert) return 2; 
-    	if(this.manaFeuRecouvert) return 3; 
-    	if(this.manaEauRecouvert) return 4; 
-    	if(this.abandon) return 5; 
-    	if(this.heliportRecouvert) return 6; 
-    	if(this.joueurCoince) return 7; 
-    	for (int i = 0; i < LARGEUR+1; i++) {
-    		for (int j = 0; j < HAUTEUR+1; j++) {
-    			if (cellules[i][j].type != elements.autre && cellules[i][j].etat == etat.submergee) return 8;
-    		}
-    	}*/
-    	
+    /**
+     * Vérifie si les joueurs ont perdu
+     * @return le numéro de la cause de la défaite et 0 si il n'y a pas défaite
+     */
+    public int defaite() {    	
     	if(this.abandon) return 5;
     	for(int i = 0; i < nbJoueurs; i++) {
     		if(this.joueursCoinces[i] == true) return 7+i; 
@@ -415,38 +655,55 @@ class CModele extends Observable {
     	return 0;
     }
     
+    /** 
+     * Procède à un échange de clés
+     * @param j : le numéro du joueur avec le souhaite on souhaite échanger une clé
+     * @param e : l'élément de la clé qu'on souhaite échanger
+     */
     public void echange(int j, elements e) {
-    	if (j != tour && joueurs[j].x == joueurs[tour].x && joueurs[j].y == joueurs[tour].y) {
+    	if(nbActions + 1 > 3) {
+    		tourSuivant();
+    		return;
+    	}
+    	//On vérifie que les deux joueurs impliqués dans l'échange se situent sur la même case
+    	if (j != tour && ((joueurs[j].x == joueurs[tour].x && joueurs[j].y == joueurs[tour].y) || joueurs[tour].role == roles.messager)) {
+    		//On vérifie que le joueur qui veut donner une clé la possède bien
     		if (e == elements.eau && joueurs[tour].cleEau > 0) {
     			joueurs[tour].cleEau--;
     			joueurs[j].cleEau++;
-    			joueurs[tour].nbActions++;
+    			nbActions = (int)(nbActions + 1.5);
     		}
     		else if (e == elements.air && joueurs[tour].cleAir > 0) {
     			joueurs[tour].cleAir--;
     			joueurs[j].cleAir++;
-    			joueurs[tour].nbActions++;
+    			nbActions = (int)(nbActions + 1.5);
     		}
     		else if (e == elements.feu && joueurs[tour].cleFeu > 0) {
     			joueurs[tour].cleFeu--;
     			joueurs[j].cleFeu++;
-    			joueurs[tour].nbActions++;
+    			nbActions = (int)(nbActions + 1.5);
     		}
     		else if (e == elements.terre && joueurs[tour].cleTerre > 0) {
     			joueurs[tour].cleTerre--;
     			joueurs[j].cleTerre++;
-    			joueurs[tour].nbActions++;
+    			nbActions = (int)(nbActions + 1.5);
     		}
     	}
-    	if (joueurs[tour].nbActions == 3) {
-    		avance();
-    	}
+    	//Si le joueur a épuisé toutes ses actions, on passe au tour suivant
+    	if (nbActions >= 3) tourSuivant();
     	notifyObservers();
     	
     }
     
+    /**
+     * Fais prendre l'hélicoptère à un joueur
+     * @param xDestination : l'abscisse de la destination
+     * @param yDestination : l'ordonnée de la destination
+     */
     public void prendreHelicoptere(int xDestination, int yDestination) {
+    	//On indique que le joueur se déplace
     	cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+    	//On vérifie que le joueur possède bien un hélicoptère et que la zone ou il veut se rendre n'est pas submergée
     	if(joueurs[tour].helicoptere > 0 && cellules[xDestination][yDestination].etat != etat.submergee) {
     		for (int i = 0; i < nbJoueurs; i++) {
     			if (i != tour && joueurs[i].x == joueurs[tour].x && joueurs[i].y == joueurs[tour].y) {
@@ -458,6 +715,7 @@ class CModele extends Observable {
     		joueurs[tour].y = yDestination;
     		joueurs[tour].helicoptere-=1;
     	}
+    	//On indique le nouvel emplacement du joueur
     	cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = true;
     	notifyObservers();
     }
@@ -468,12 +726,13 @@ class CModele extends Observable {
      * Une méthode pour renvoyer la cellule aux coordonnées choisies (sera
      * utilisée par la vue).
      */
-    public Cellule getCellule(int x, int y) {
-	return cellules[x][y];
-    }
+    public Cellule getCellule(int x, int y) { return cellules[x][y]; }
 }
 
-/** Fin de la classe CModele. */
+////////////////////Fin classe principale modèle////////////////////
+
+////////////////////Classes auxiliaires modèle////////////////////
+
 
 /**
  * Définition d'une classe pour les cellules.
@@ -500,37 +759,106 @@ class Cellule {
         this.presenceJoueur = false;
     }
 }    
-/** Fin de la classe Cellule, et du modèle en général. */
 
+/**
+ * Définition d'une classe pour les joueurs
+ *
+ */
 class Joueur{
-	public int cleEau;
-	public int cleFeu;
-	public int cleAir;
-	public int cleTerre;
-	public int helicoptere;
-	public int sacSable;
-	public int x, y;
-	public int nbActions;
-	
-	public int getNbActions() {
-		return nbActions;
-	}
-
+	//Inventaire du joueur
+	protected int cleEau;
+	protected int cleFeu;
+	protected int cleAir;
+	protected int cleTerre;
+	protected int helicoptere;
+	protected int sacSable;
+	//Position du joueur
+	protected int x, y;
+	protected roles role;
+	//On conserve un pointeur cers la classe principale du modèle
 	private CModele modele;
 	
-	public Joueur(int x, int y) {
+	public Joueur(CModele modele, int x, int y, roles r) {
 		this.modele = modele;
 		this.x = x;
 		this.y = y;
-		this.nbActions = 0;
+		//Au début de la partie, le joueur ne possède rien
 		cleEau = 0;
 		cleFeu = 0;
 		cleTerre = 0;
 		cleAir = 0;
 		helicoptere = 0;
 		sacSable = 0;
+		this.role = r;
 	}
 }  
+
+/** 
+ * Définition d'une classe paramétrée pour les paquets de carte
+ */
+class Cartes<T>{
+	//On conserve un pointeur cers la classe principale du modèle
+	CModele modele;
+	//On définit le paquet initiale et sas défausse
+	ArrayList<T> paquet = new ArrayList<T>();
+	ArrayList<T> defausse = new ArrayList<T>();
+	
+	public Cartes(CModele modele) {
+		this.modele = modele;
+	}
+	
+	/**
+	 * Mélange le paquet
+	 */
+	public void melanger() {
+		Collections.shuffle(paquet);
+	}
+	
+	/**
+	 * Tire la première carte du paquet
+	 * @return la première carte du paquet
+	 */
+	public T tirer() {
+		T premiereCarte = paquet.get(0);
+		paquet.remove(0);
+		return premiereCarte;
+	}
+
+	/**
+	 * Mélange la défausse et la place au dessus du paquet
+	 */
+	public void viderDefausse() {
+		Collections.shuffle(defausse);
+		for (int i = 0; i < defausse.size(); i++) {
+			paquet.add(i, defausse.get(i));
+		}
+		defausse.clear();
+	}
+	
+	/**
+	 * Ajoute une carte au paquet
+	 * @param o : la carte à ajouter
+	 */
+	public void ajouterPaquet(T o) {
+		paquet.add(o);
+	}
+	
+	/**
+	 * Ajoute une carte dans la défausse
+	 * @param o : La carte à déposer
+	 */
+	public void ajouterDefausse(T o) {
+		defausse.add(o);
+	}
+	
+	/**
+	 * Vérifie si le paquet est vide
+	 * @return : true si le paquet est vide, false sinon
+	 */
+	public boolean estVide() {
+		return paquet.size() == 0;
+	}
+}
 
 /**
  * La vue : l'interface avec l'utilisateur.
@@ -546,10 +874,6 @@ class CVue {
      * de l'application graphique.
      */
     private JFrame frame;
-    /**
-     * VueGrille et VueCommandes sont deux classes définies plus loin, pour
-     * nos deux parties de l'interface graphique.
-     */
     private VueGrille grille;
     private VueCommandes commandes;
     private VuePlayer player;
@@ -559,64 +883,89 @@ class CVue {
 	frame = new JFrame();
 	frame.setTitle(" L'île interdite ");
 	JPanel text = new JPanel();
-	text.setLayout(new BoxLayout(text, BoxLayout.LINE_AXIS));
     text.add(new JLabel("Cliquer pour assécher une zone inondée"));
     JPanel bouton = new JPanel();
- 
-    
-    /**
-	 * On précise un mode pour disposer les différents éléments à
-	 * l'intérieur de la fenêtre. Quelques possibilités sont :
-	 *  - BorderLayout (défaut pour la classe JFrame) : chaque élément est
-	 *    disposé au centre ou le long d'un bord.
-	 *  - FlowLayout (défaut pour un JPanel) : les éléments sont disposés
-	 *    l'un à la suite de l'autre, dans l'ordre de leur ajout, les lignes
-	 *    se formant de gauche à droite et de haut en bas. Un élément peut
-	 *    passer à la ligne lorsque l'on redimensionne la fenêtre.
-	 *  - GridLayout : les éléments sont disposés l'un à la suite de
-	 *    l'autre sur une grille avec un nombre de lignes et un nombre de
-	 *    colonnes définis par le programmeur, dont toutes les cases ont la
-	 *    même dimension. Cette dimension est calculée en fonction du
-	 *    nombre de cases à placer et de la dimension du contenant.
-	 */
-	frame.setLayout(new FlowLayout());
-	//frame.setLayout(new BorderLayout());
-
-
-	/** Définition des deux vues et ajout à la fenêtre. */
+	frame.setLayout(new BorderLayout());
+	frame.setResizable(false);
 	grille = new VueGrille(modele);
-	frame.add(grille);
 	commandes = new VueCommandes(modele);
-	bouton.setLayout(new BoxLayout(bouton, BoxLayout.PAGE_AXIS));
 	bouton.add(commandes);
-
     JPanel position = new JPanel();
-    position.setLayout(new BoxLayout(position, BoxLayout.PAGE_AXIS));
     position.add(text);
     position.add(bouton);
     player = new VuePlayer(modele);
-    position.add(player);
-    frame.add(position);
-	
-	/**
-	 * Remarque : on peut passer à la méthode [add] des paramètres
-	 * supplémentaires indiquant où placer l'élément. Par exemple, si on
-	 * avait conservé la disposition par défaut [BorderLayout], on aurait
-	 * pu écrire le code suivant pour placer la grille à gauche et les
-	 * commandes à droite.
-	 *     frame.add(grille, BorderLayout.WEST);
-	 *     frame.add(commandes, BorderLayout.EAST);
-	 */
-
-	/**
-	 * Fin de la plomberie :
-	 *  - Ajustement de la taille de la fenêtre en fonction du contenu.
-	 *  - Indiquer qu'on quitte l'application si la fenêtre est fermée.
-	 *  - Préciser que la fenêtre doit bien apparaître à l'écran.
-	 */
+    frame.add(grille, BorderLayout.CENTER);
+    frame.add(position, BorderLayout.PAGE_END);
+    frame.add(player, BorderLayout.EAST);
 	frame.pack();
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	frame.setVisible(true);
+    }
+}
+
+/**
+ * Une classe pour représenter la zone contenant le bouton.
+ *
+ * Cette zone n'aura pas à être mise à jour et ne sera donc pas un observateur.
+ * En revanche, comme la zone précédente, celle-ci est un panneau [JPanel].
+ */
+class VueCommandes extends JPanel {
+    /**
+     * Pour que le bouton puisse transmettre ses ordres, on garde une
+     * référence au modèle.
+     */
+    private CModele modele;
+    
+    /** Constructeur. */
+    public VueCommandes(CModele modele) {
+		this.modele = modele;
+		/**
+		 * On crée un nouveau bouton, de classe [JButton], en précisant le
+		 * texte qui doit l'étiqueter.
+		 * Puis on ajoute ce bouton au panneau [this].
+		 */
+		JButton AssecheHaut = new JButton("h");
+		JButton AssecheBas = new JButton("b");
+		JButton Asseche = new JButton("o");
+		JButton AssecheGauche = new JButton("g");
+		JButton AssecheDroite = new JButton("d"); 
+		JButton AssecheHautGauche = new JButton("hg");
+		JButton AssecheHautDroite = new JButton("hd");
+		JButton AssecheBasGauche = new JButton("bg");
+		JButton AssecheBasDroite = new JButton("bd"); 
+		this.add(AssecheHaut);
+		this.add(AssecheBas);
+		this.add(Asseche);
+		this.add(AssecheGauche);
+		this.add(AssecheDroite);
+		this.add(AssecheHautDroite);
+		this.add(AssecheHautGauche);
+		this.add(AssecheBasDroite);
+		this.add(AssecheBasGauche);
+		AssecheGauche.setLocation(Frame.WIDTH/2, -Frame.HEIGHT/2);
+		JButton abandon = new JButton("Abandonner");
+		this.add(abandon);
+		Controleur ctrl = new Controleur(modele);
+		/** Enregistrement du contrôleur comme auditeur du bouton. */
+		AssecheHaut.addActionListener(ctrl);
+		AssecheBas.addActionListener(ctrl);
+		Asseche.addActionListener(ctrl);
+		AssecheGauche.addActionListener(ctrl);
+		AssecheDroite.addActionListener(ctrl);
+		AssecheHaut.addKeyListener(ctrl);
+		AssecheDroite.addKeyListener(ctrl);
+		AssecheBas.addKeyListener(ctrl);
+		Asseche.addKeyListener(ctrl);
+		AssecheGauche.addKeyListener(ctrl);
+		abandon.addActionListener(ctrl);	
+		AssecheHautDroite.addActionListener(ctrl);
+		AssecheBasDroite.addActionListener(ctrl);
+		AssecheBasGauche.addActionListener(ctrl);
+		AssecheHautGauche.addActionListener(ctrl);
+		AssecheHautDroite.addKeyListener(ctrl);
+		AssecheBasDroite.addKeyListener(ctrl);
+		AssecheBasGauche.addKeyListener(ctrl);
+		AssecheHautGauche.addKeyListener(ctrl);
     }
 }
 
@@ -642,6 +991,7 @@ class VueGrille extends JPanel implements Observer {
 	this.add(fin);
 	Controleur ctrl = new Controleur(modele);
 	this.addMouseListener(ctrl);
+	this.addKeyListener(ctrl);
     }
 
     /**
@@ -654,21 +1004,37 @@ class VueGrille extends JPanel implements Observer {
 
     public void paintComponent(Graphics g) {
 	super.repaint();
+	ImageIcon j1 = new ImageIcon("J1.PNG");
+    Image J1 = j1.getImage();
+    
+    ImageIcon j2  = new ImageIcon("J2.PNG");
+    Image J2 = j2.getImage();
+    
+    ImageIcon j3 = new ImageIcon("J3.PNG");
+    Image J3 = j3.getImage();
+    
+    ImageIcon j4 = new ImageIcon("J4.PNG");
+    Image J4 = j4.getImage();
+    
 	/** Pour chaque cellule... */
 	if(!modele.victoire() && modele.defaite() == 0) {
 		for(int i=1; i<=CModele.LARGEUR; i++) {
 		    for(int j=1; j<=CModele.HAUTEUR; j++) {
-			/**
-			 * ... Appeler une fonction d'affichage auxiliaire.
-			 * On lui fournit les informations de dessin [g] et les
-			 * coordonnées du coin en haut à gauche.
-			 */
 			paint(g, modele.getCellule(i, j), (i-1)*TAILLE, (j-1)*TAILLE);
 		    }
 		}
 		g.setColor(Color.WHITE);
 		for (int i = 0; i < modele.nbJoueurs; i++) {
-			g.drawString(Integer.toString(i+1), modele.getJoueurs()[i].x*TAILLE-23, modele.getJoueurs()[i].y*TAILLE-15);
+			if(i == 0)
+			g.drawImage(J1, modele.getJoueurs(i).x*TAILLE-40, modele.getJoueurs(i).y*TAILLE-40, TAILLE, TAILLE, null);
+			if(i == 1)
+			g.drawImage(J2, modele.getJoueurs(i).x*TAILLE-40, modele.getJoueurs(i).y*TAILLE-40, TAILLE, TAILLE, null);
+			if(i == 2)
+				g.drawImage(J3, modele.getJoueurs(i).x*TAILLE-40, modele.getJoueurs(i).y*TAILLE-40, TAILLE, TAILLE, null);
+			if(i == 3)
+				g.drawImage(J4, modele.getJoueurs(i).x*TAILLE-40, modele.getJoueurs(i).y*TAILLE-40, TAILLE, TAILLE, null);
+			g.drawString(Integer.toString(i+1), modele.getJoueurs(i).x*TAILLE-23, modele.getJoueurs(i).y*TAILLE);
+
 		}
 	}else if (modele.victoire()){
 		this.removeAll();
@@ -724,8 +1090,6 @@ class VueGrille extends JPanel implements Observer {
 		Font font = new Font("Arial", Font.BOLD, 25);
 		fin.setFont(font);
 		this.add(fin);
-		/*int a = modele.defaite();
-		this.add(new JLabel(String.valueOf(a)));*/
 		this.validate();
 	}
     }
@@ -766,26 +1130,22 @@ class VueGrille extends JPanel implements Observer {
            
            ImageIcon i8 = new ImageIcon("joueur.png");
            Image player = i8.getImage();
-        /** Coloration d'un rectangle. */
-           /** Sélection d'une couleur. */
        	if (c.etat == etat.normale) g.drawImage(terre, x, y, TAILLE, TAILLE, null); 
        	else if (c.etat == etat.inondee) g.drawImage(inondé, x, y, TAILLE, TAILLE, null);
        	else g.drawImage(submergé, x, y, TAILLE, TAILLE, null);
-       	//g.fillRect(x, y, TAILLE, TAILLE);
        	if(c.type == elements.eau) g.drawImage(eau, x, y, TAILLE, TAILLE, null);
        	if(c.type == elements.air) g.drawImage(air, x, y, TAILLE, TAILLE, null);
        	if(c.type == elements.feu) g.drawImage(feu, x, y, TAILLE, TAILLE, null);
        	if(c.type == elements.terre) g.drawImage(herbe, x, y, TAILLE, TAILLE, null);
        	if(c.type == elements.heliport) g.drawImage(heliport, x, y, TAILLE, TAILLE, null);
-       	//if(c.type != elements.autre) g.fillOval(x, y, TAILLE, TAILLE);
        	if(c.presenceJoueur) {
-       		/*g.setColor(Color.BLACK);
-       		g.fillOval(x+5,  y+5,  TAILLE-10, TAILLE-10);*/
-       		g.drawImage(player, x, y, TAILLE, TAILLE, null);
        	}
     }
 }
 
+/**
+ * Une classe montrant les informations utiles aux joueurs
+ */
 class VuePlayer extends JPanel implements Observer {
 
     private CModele modele;
@@ -797,19 +1157,28 @@ class VuePlayer extends JPanel implements Observer {
     public VuePlayer(CModele modele) {
 	this.modele = modele;
 	modele.addObserver(this);
-  	int actions = modele.getJoueurs()[modele.getTour()].nbActions;  //actions
+  	float actions = modele.getNbActions();  //actions
   	this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-  	this.add(new JLabel("Nombre de joueurs: " + modele.getJoueurs().length));
-  	this.add(new JLabel("Au tour du joueur: " + (modele.getTour()+1)));
-  	this.add(new JLabel("Nombre d'actions restantes: " + (3-actions)));
+  	if(modele.getJoueurs(modele.getTour()).role != roles.aucun) this.add(new JLabel("Au tour du joueur " + (modele.getTour()+1) +
+  			" (" + modele.getJoueurs(modele.getTour()).role + ")"));
+  	else this.add(new JLabel("Au tour du joueur " + (modele.getTour()+1)));
+  	this.add(new JLabel("Nombre d'actions restantes : " + (int)(3-actions)));
   	for (int i = 0; i < modele.nbJoueurs; i++) {
-  		this.add(new JLabel("Joueur " + (i+1) + " : " + 
-  				modele.getJoueurs()[i].cleEau + " Clés eau, " + 
-  				modele.getJoueurs()[i].cleAir + " Clés air, " + 
-  				modele.getJoueurs()[i].cleFeu + " Clés feu, " + 
-  				modele.getJoueurs()[i].cleTerre + " Clés terre, " +
-  				modele.getJoueurs()[i].helicoptere + " Hélicoptères, " +
-  				modele.getJoueurs()[i].sacSable + " Sacs de sable "));
+  		if(modele.getJoueurs(modele.getTour()).role != roles.aucun) this.add(new JLabel("Joueur " + (i+1) + 
+  				" (" + modele.getJoueurs(i).role +") : " +
+  				modele.getJoueurs(i).cleEau + " Clés eau, " + 
+  				modele.getJoueurs(i).cleAir + " Clés air, " + 
+  				modele.getJoueurs(i).cleFeu + " Clés feu, " + 
+  				modele.getJoueurs(i).cleTerre + " Clés terre, " + 
+  				modele.getJoueurs(i).helicoptere + " Hélicoptères, " +
+  				modele.getJoueurs(i).sacSable + " Sacs de sable "));
+  		else this.add(new JLabel("Joueur " + (i+1) + " : " +
+  				modele.getJoueurs(i).cleEau + " Clés eau, " + 
+  				modele.getJoueurs(i).cleAir + " Clés air, " + 
+  				modele.getJoueurs(i).cleFeu + " Clés feu, " + 
+  				modele.getJoueurs(i).cleTerre + " Clés terre, " + 
+  				modele.getJoueurs(i).helicoptere + " Hélicoptères, " +
+  				modele.getJoueurs(i).sacSable + " Sacs de sable "));
   	}
   	this.add(value0);
   	this.add(value1);
@@ -819,23 +1188,32 @@ class VuePlayer extends JPanel implements Observer {
 
     public void update() { 
     	this.removeAll();
-    	int actions = modele.getJoueurs()[modele.getTour()].nbActions;  //actions
-    	this.add(new JLabel("Nombre de joueurs: " + modele.getJoueurs().length));
-      	this.add(new JLabel("Au tour du joueur: " + (modele.getTour()+1)));
-      	this.add(new JLabel("Nombre d'actions restantes: " + (3-actions)));
+    	float actions = modele.getNbActions();  //actions
+    	if(modele.getJoueurs(modele.getTour()).role != roles.aucun) this.add(new JLabel("Au tour du joueur " + (modele.getTour()+1) +
+      			" (" + modele.getJoueurs(modele.getTour()).role + ")"));
+      	else this.add(new JLabel("Au tour du joueur " + (modele.getTour()+1)));
+      	this.add(new JLabel("Nombre d'actions restantes : " + (int)(3-actions+0.5)));
       	for (int i = 0; i < modele.nbJoueurs; i++) {
-      		this.add(new JLabel("Joueur " + (i+1) + " : " + 
-      				modele.getJoueurs()[i].cleEau + " Clés eau, " + 
-      				modele.getJoueurs()[i].cleAir + " Clés air, " + 
-      				modele.getJoueurs()[i].cleFeu + " Clés feu, " + 
-      				modele.getJoueurs()[i].cleTerre + " Clés terre, " + 
-      				modele.getJoueurs()[i].helicoptere + " Hélicoptères, " +
-      				modele.getJoueurs()[i].sacSable + " Sacs de sable "));
+      		if(modele.getJoueurs(modele.getTour()).role != roles.aucun) this.add(new JLabel("Joueur " + (i+1) + 
+      				" (" + modele.getJoueurs(i).role +") : " +
+      				modele.getJoueurs(i).cleEau + " Clés eau, " + 
+      				modele.getJoueurs(i).cleAir + " Clés air, " + 
+      				modele.getJoueurs(i).cleFeu + " Clés feu, " + 
+      				modele.getJoueurs(i).cleTerre + " Clés terre, " + 
+      				modele.getJoueurs(i).helicoptere + " Hélicoptères, " +
+      				modele.getJoueurs(i).sacSable + " Sacs de sable "));
+      		else this.add(new JLabel("Joueur " + (i+1) + " : " +
+      				modele.getJoueurs(i).cleEau + " Clés eau, " + 
+      				modele.getJoueurs(i).cleAir + " Clés air, " + 
+      				modele.getJoueurs(i).cleFeu + " Clés feu, " + 
+      				modele.getJoueurs(i).cleTerre + " Clés terre, " + 
+      				modele.getJoueurs(i).helicoptere + " Hélicoptères, " +
+      				modele.getJoueurs(i).sacSable + " Sacs de sable "));
       	}
-      	if(modele.artefacts[0] != -1) value0 = new JLabel("Artéfact d'eau possédé par Joueur " + modele.artefacts[0]);
-      	if(modele.artefacts[1] != -1) value1 = new JLabel("Artéfact d'air possédé par Joueur " + modele.artefacts[1]);
-      	if(modele.artefacts[2] != -1) value2 = new JLabel("Artéfact de feu possédé par Joueur " + modele.artefacts[2]);
-      	if(modele.artefacts[3] != -1) value3 = new JLabel("Artéfact de terre possédé par Joueur " + modele.artefacts[3]);
+      	if(modele.getArtefact(0) != -1) value0 = new JLabel("Artéfact d'eau possédé par Joueur " + modele.getArtefact(0));
+      	if(modele.getArtefact(1) != -1) value1 = new JLabel("Artéfact d'air possédé par Joueur " + modele.getArtefact(1));
+      	if(modele.getArtefact(2) != -1) value2 = new JLabel("Artéfact de feu possédé par Joueur " + modele.getArtefact(2));
+      	if(modele.getArtefact(3) != -1) value3 = new JLabel("Artéfact de terre possédé par Joueur " + modele.getArtefact(3));
       	this.add(value0);
       	this.add(value1);
       	this.add(value2);
@@ -844,66 +1222,151 @@ class VuePlayer extends JPanel implements Observer {
     	this.repaint(); }
 }
 
-/**
- * Une classe pour représenter la zone contenant le bouton.
- *
- * Cette zone n'aura pas à être mise à jour et ne sera donc pas un observateur.
- * En revanche, comme la zone précédente, celle-ci est un panneau [JPanel].
- */
-class VueCommandes extends JPanel {
+class VueCommandesMenu extends JPanel {
     /**
      * Pour que le bouton puisse transmettre ses ordres, on garde une
      * référence au modèle.
      */
-    private CModele modele;
-    
     /** Constructeur. */
-    public VueCommandes(CModele modele) {
-		this.modele = modele;
-		/**
-		 * On crée un nouveau bouton, de classe [JButton], en précisant le
-		 * texte qui doit l'étiqueter.
-		 * Puis on ajoute ce bouton au panneau [this].
-		 */
-		JButton AssecheHaut = new JButton("h");
-		JButton AssecheBas = new JButton("b");
-		JButton Asseche = new JButton("o");
-		JButton AssecheGauche = new JButton("g");
-		JButton AssecheDroite = new JButton("d"); 
-		this.add(AssecheHaut);
-		this.add(AssecheBas);
-		this.add(Asseche);
-		this.add(AssecheGauche);
-		this.add(AssecheDroite);
-		JButton abandon = new JButton("Abandonner");
-		this.add(abandon);
-		Controleur ctrl = new Controleur(modele);
-		/** Enregistrement du contrôleur comme auditeur du bouton. */
-		AssecheHaut.addActionListener(ctrl);
-		AssecheBas.addActionListener(ctrl);
-		Asseche.addActionListener(ctrl);
-		AssecheGauche.addActionListener(ctrl);
-		AssecheDroite.addActionListener(ctrl);
-		AssecheHaut.addKeyListener(ctrl);
-		AssecheDroite.addKeyListener(ctrl);
-		AssecheBas.addKeyListener(ctrl);
-		Asseche.addKeyListener(ctrl);
-		AssecheGauche.addKeyListener(ctrl);
-		abandon.addActionListener(ctrl);
+    public VueCommandesMenu() {
+        JPanel boutons = new JPanel();
+    	boutons.setLayout(new BoxLayout(boutons, BoxLayout.LINE_AXIS));
+        boutons.add(new JLabel("Combien d'aventuriers partiront en expédition? "));
+        JPanel bouton = new JPanel();
+    	
+		JButton deuxJoueurs = new JButton("2");
+		deuxJoueurs.setLocation(this.getHeight()/2, this.getWidth()/2);
+		boutons.add(deuxJoueurs);
+		JButton troisJoueurs = new JButton("3");
+		troisJoueurs.setLocation(this.getHeight()/2, this.getWidth()/2);
+		boutons.add(troisJoueurs);
+		JButton quatreJoueurs = new JButton("4");
+		quatreJoueurs.setLocation(this.getHeight()/2, this.getWidth()/2);
+		boutons.add(quatreJoueurs);
 		
-		/**
-		 * Variante : une lambda-expression qui évite de créer une classe
-	         * spécifique pour un contrôleur simplissime.
-	         *
-	         JButton boutonAvance = new JButton(">");
-	         this.add(boutonAvance);
-	         boutonAvance.addActionListener(e -> { modele.avance(); });
-	         *
-	         */
+		this.add(boutons, BorderLayout.NORTH);
+		ControleurMenu ctrlM = new ControleurMenu();
+		/** Enregistrement du contrôleur comme auditeur du bouton. */
+		deuxJoueurs.addActionListener(ctrlM);
+		troisJoueurs.addActionListener(ctrlM);
+		quatreJoueurs.addActionListener(ctrlM);
+		
 	
     }
 }
-/** Fin de la vue. */
+
+class CVueMenu {
+    public static int resultat;
+	/**
+     * JFrame est une classe fournie pas Swing. Elle représente la fenêtre
+     * de l'application graphique.
+     */
+    private JFrame frame;
+    /**
+     * VueGrille et VueCommandes sont deux classes définies plus loin, pour
+     * nos deux parties de l'interface graphique.
+     */
+    private VueCommandesMenu commandes;
+    /** Construction d'une vue attachée à un modèle. */
+    public CVueMenu() {
+	/** Définition de la fenêtre principale. */
+    resultat = 0;
+	frame = new JFrame();
+	frame.setLayout(new BorderLayout());
+	frame.setTitle("Menu");
+	JPanel text = new JPanel();
+    
+    JPanel bouton = new JPanel();
+  
+    ImageIcon icone = new ImageIcon("619.png");;
+    
+    Image image = icone.getImage();
+    Image newimg = image.getScaledInstance(600, 350,  java.awt.Image.SCALE_SMOOTH);
+    icone = new ImageIcon(newimg);
+    JLabel img = new JLabel(icone, JLabel.CENTER);
+    
+    frame.add(img, BorderLayout.PAGE_START);
+
+	/** Définition des deux vues et ajout à la fenêtre. */
+	VueCommandesMenu commandes = new VueCommandesMenu();
+	bouton.setLocation(frame.getHeight()/2, frame.getWidth()/2);
+	bouton.add(commandes);
+    JPanel position = new JPanel();
+    position.add(text, BorderLayout.CENTER);
+    position.add(bouton);
+    frame.add(position, BorderLayout.CENTER);
+	music("music.wav");
+	frame.pack();
+	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	frame.setVisible(true);
+	if(resultat != 0) {
+		frame.dispose();
+	}
+    }
+    
+    private void music(String filepath) {			
+		try {
+			File musicPath = new File(filepath);
+			if(musicPath.exists()) {
+				AudioInputStream audioIn = AudioSystem.getAudioInputStream(musicPath);
+				Clip clip = AudioSystem.getClip(); 
+				clip.open(audioIn); 
+				clip.start(); 
+				clip.loop(clip.LOOP_CONTINUOUSLY);
+			}else {
+				System.out.println("error");
+			}
+		}
+		catch(Exception error) {
+			error.printStackTrace();
+		}
+	}
+}
+class CVueControles {
+    public static int resultat;
+	/**
+     * JFrame est une classe fournie pas Swing. Elle représente la fenêtre
+     * de l'application graphique.
+     */
+    private JFrame frame;
+    /**
+     * VueGrille et VueCommandes sont deux classes définies plus loin, pour
+     * nos deux parties de l'interface graphique.
+     */
+    /** Construction d'une vue attachée à un modèle. */
+    public CVueControles() {
+	/** Définition de la fenêtre principale. */
+	frame = new JFrame();
+	frame.setTitle("Controles");
+	JPanel text = new JPanel();   
+	text.setLayout(new BoxLayout(text, BoxLayout.PAGE_AXIS));
+    text.add(new JLabel("Déplacement d'un joueur : flèches du clavier"));
+    text.add(new JLabel("Assèchement d'une zone : boutons"));
+    text.add(new JLabel("Fin de tour : touche entrée"));
+    text.add(new JLabel("Récupération d'un artéfact : touche espace"));
+    text.add(new JLabel("Echange de clé : Fx suivi de y où :"));
+    text.add(new JLabel("     x corresponds au numéro du joueur auquel on souhaite donner une clé"));
+    text.add(new JLabel("     y corresponds à l'initiale de la ressource que l'on souhaite donner :"));
+    text.add(new JLabel("          E = Eau"));
+    text.add(new JLabel("          A = Air"));
+    text.add(new JLabel("          F = Feu"));
+    text.add(new JLabel("          T = Terre"));
+    text.add(new JLabel("Exemple : F1 suivi de E permet de donner une clé d'eau au joueur 1"));
+    text.add(new JLabel("Utilisation hélicoptère : Clique gauche sur la zone d'arrivée"));
+    text.add(new JLabel("Utilisation sac de sable : Clique gauche sur la zone à assécher"));
+    text.add(new JLabel("Actions spéciales :"));
+    text.add(new JLabel("     Pilote : Clique sur la roulette de la souris puis clique gauche sur la zone d'arrivée"));
+    text.add(new JLabel("     Explorateur : Boutons pour assécher + clique sur la roulette puis clique gauche sur la zone où aller pour le déplacement diagonal"));
+    JPanel position = new JPanel();
+    position.add(text);
+    frame.add(position);
+    frame.pack();
+	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	frame.setVisible(true);
+    }
+}
+
+///////////Fin vue//////////
 
 /**
  * Classe pour notre contrôleur rudimentaire.
@@ -921,8 +1384,9 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
      * faire directement référence au modèle enregistré pour la classe
      * englobante [VueCommandes].
      */
-    CModele modele;
-    boolean[] j;
+    private CModele modele;
+    private boolean[] j;
+    private boolean pouvoir = false;
     public Controleur(CModele modele) { 
     	this.modele = modele; 
     	j = new boolean[modele.nbJoueurs];
@@ -948,7 +1412,7 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 			modele.deplace(KeyEvent.VK_LEFT);
 			break;
 		case KeyEvent.VK_ENTER:
-			modele.avance();
+			modele.tourSuivant();
 			break;
 		case KeyEvent.VK_SPACE:
 			modele.recupere();
@@ -1003,7 +1467,6 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 			if(modele.nbJoueurs == 4) j[3] = true;
 			break;
 		}
-		
 	}
 	@Override
 	public void keyTyped(KeyEvent e) {
@@ -1022,22 +1485,34 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 		String actionCode = e.getActionCommand();
 		switch (actionCode) {
 		case "h":
-			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x, modele.getJoueurs()[modele.getTour()].y-1);
+			modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y-1);
 			break;
 		case "b":
-			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x, modele.getJoueurs()[modele.getTour()].y+1);
+			modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y+1);
 			break;
 		case "d":
-			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x+1, modele.getJoueurs()[modele.getTour()].y);
+			modele.asseche(false, modele.getJoueurs(modele.getTour()).x+1, modele.getJoueurs(modele.getTour()).y);
 			break;
 		case "g":
-			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x-1, modele.getJoueurs()[modele.getTour()].y);;
+			modele.asseche(false, modele.getJoueurs(modele.getTour()).x-1, modele.getJoueurs(modele.getTour()).y);;
 			break;
 		case "o":
-			modele.asseche(false, modele.getJoueurs()[modele.getTour()].x, modele.getJoueurs()[modele.getTour()].y);
+			modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y);
+			break;
+		case "hg":
+			modele.asseche(false, modele.getJoueurs(modele.getTour()).x-1, modele.getJoueurs(modele.getTour()).y-1);
+			break;
+		case "hd":
+			modele.asseche(false, modele.getJoueurs(modele.getTour()).x+1, modele.getJoueurs(modele.getTour()).y-1);
+			break;
+		case "bg":
+			modele.asseche(false, modele.getJoueurs(modele.getTour()).x-1, modele.getJoueurs(modele.getTour()).y+1);
+			break;
+		case "bd":
+			modele.asseche(false, modele.getJoueurs(modele.getTour()).x+1, modele.getJoueurs(modele.getTour()).y+1);;
 			break;
 		case "Abandonner":
-			modele.abandon = true;
+			modele.abandonner();
 			break;
 		}
 		
@@ -1046,22 +1521,24 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 	@Override
 	public void mouseClicked(MouseEvent m) {
 		int mouseCode = m.getButton();
-		switch (mouseCode) {
-		case MouseEvent.BUTTON1:
-			modele.prendreHelicoptere(m.getX()/40+1, m.getY()/40+1);
-			break;
-		case MouseEvent.BUTTON3:
-			modele.asseche(true, m.getX()/40+1, m.getY()/40+1);
-			break;
+		if(!pouvoir) {
+			switch (mouseCode) {
+			case MouseEvent.BUTTON1:
+				modele.prendreHelicoptere(m.getX()/40+1, m.getY()/40+1);
+				break;
+			case MouseEvent.BUTTON2:
+				pouvoir = true;
+				break;
+			case MouseEvent.BUTTON3:
+				modele.asseche(true, m.getX()/40+1, m.getY()/40+1);
+				break;
+			}	
 		}
-		/**if(SwingUtilities.isLeftMouseButton(m)) {
-			System.out.println((m.getX()-1)/40 + " " + m.getY()/40);
+		else {
+			System.out.println("je suis passé");
+			modele.utilisePouvoir(m.getX()/40+1, m.getY()/40+1);
+			pouvoir = false;
 		}
-		else if(SwingUtilities.isRightMouseButton(m)) {
-			System.out.println("ok");
-			
-		}**/
-		
 	}
 
 	@Override
@@ -1089,229 +1566,7 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 	}
 }
 
-/** Fin du contrôleur. */
-
-class CVueMenu {
-    public static int resultat;
-	/**
-     * JFrame est une classe fournie pas Swing. Elle représente la fenêtre
-     * de l'application graphique.
-     */
-    private JFrame frame;
-    /**
-     * VueGrille et VueCommandes sont deux classes définies plus loin, pour
-     * nos deux parties de l'interface graphique.
-     */
-    private VueMenu grille;
-    private VueCommandesMenu commandes;
-    /** Construction d'une vue attachée à un modèle. */
-    public CVueMenu() {
-	/** Définition de la fenêtre principale. */
-    resultat = 0;
-	frame = new JFrame();
-	frame.setLayout(new BorderLayout());
-	frame.setTitle("Menu");
-	JPanel text = new JPanel();
-    
-    JPanel bouton = new JPanel();
-  
-    ImageIcon icone = new ImageIcon("619.png");;
-    
-    Image image = icone.getImage();
-    Image newimg = image.getScaledInstance(600, 350,  java.awt.Image.SCALE_SMOOTH);
-    icone = new ImageIcon(newimg);
-    JLabel img = new JLabel(icone, JLabel.CENTER);
-    
-    frame.add(img, BorderLayout.PAGE_START);
-    
-    /**
-	 * On précise un mode pour disposer les différents éléments à
-	 * l'intérieur de la fenêtre. Quelques possibilités sont :
-	 *  - BorderLayout (défaut pour la classe JFrame) : chaque élément est
-	 *    disposé au centre ou le long d'un bord.
-	 *  - FlowLayout (défaut pour un JPanel) : les éléments sont disposés
-	 *    l'un à la suite de l'autre, dans l'ordre de leur ajout, les lignes
-	 *    se formant de gauche à droite et de haut en bas. Un élément peut
-	 *    passer à la ligne lorsque l'on redimensionne la fenêtre.
-	 *  - GridLayout : les éléments sont disposés l'un à la suite de
-	 *    l'autre sur une grille avec un nombre de lignes et un nombre de
-	 *    colonnes définis par le programmeur, dont toutes les cases ont la
-	 *    même dimension. Cette dimension est calculée en fonction du
-	 *    nombre de cases à placer et de la dimension du contenant.
-	 */
-	
-	//frame.setLayout(new BorderLayout());
-
-
-	/** Définition des deux vues et ajout à la fenêtre. */
-	VueMenu menu = new VueMenu();
-	frame.add(menu);
-	VueCommandesMenu commandes = new VueCommandesMenu();
-	bouton.setLocation(frame.getHeight()/2, frame.getWidth()/2);
-	bouton.add(commandes);
-
-    JPanel position = new JPanel();
-    position.add(text, BorderLayout.CENTER);
-    position.add(bouton);
-    frame.add(position, BorderLayout.CENTER);
-	music("music.wav");
-	
-	/**
-	 * Remarque : on peut passer à la méthode [add] des paramètres
-	 * supplémentaires indiquant où placer l'élément. Par exemple, si on
-	 * avait conservé la disposition par défaut [BorderLayout], on aurait
-	 * pu écrire le code suivant pour placer la grille à gauche et les
-	 * commandes à droite.
-	 *     frame.add(grille, BorderLayout.WEST);
-	 *     frame.add(commandes, BorderLayout.EAST);
-	 */
-
-	/**
-	 * Fin de la plomberie :
-	 *  - Ajustement de la taille de la fenêtre en fonction du contenu.
-	 *  - Indiquer qu'on quitte l'application si la fenêtre est fermée.
-	 *  - Préciser que la fenêtre doit bien apparaître à l'écran.
-	 */
-	frame.pack();
-	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	frame.setVisible(true);
-	if(resultat != 0) {
-		frame.dispose();
-	}
-    }
-    
-    private void music(String filepath) {			
-		try {
-			File musicPath = new File(filepath);
-			if(musicPath.exists()) {
-				
-
-				AudioInputStream audioIn = AudioSystem.getAudioInputStream(musicPath);
-				Clip clip = AudioSystem.getClip(); 
-				clip.open(audioIn); 
-				clip.start(); 
-				clip.loop(clip.LOOP_CONTINUOUSLY);
-				
-				
-			/*AudioInputStream audioInput = AudioSystem.getAudioInputStream(new BufferedInputStream(new FileInputStream(musicPath)));
-			Clip clip = AudioSystem.getClip();
-			clip.start();*/
-			}else {
-				System.out.println("error");
-			}
-		}
-		catch(Exception error) {
-			error.printStackTrace();
-		}
-	}
-}
-
-
-
-
-
-
-class VueMenu extends JPanel implements Observer {
-    /** On maintient une référence vers le modèle. */
-    /** Définition d'une taille (en pixels) pour l'affichage des cellules. */
-    private final static int TAILLE = 20;
-
-    /** Constructeur. */
-    public VueMenu() {
-	/**
-	 * Définition et application d'une taille fixe pour cette zone de
-	 * l'interface, calculée en fonction du nombre de cellules et de la
-	 * taille d'affichage.
-	 */
-	Dimension dim = new Dimension(TAILLE*CModele.LARGEUR,
-				      TAILLE*CModele.HAUTEUR);
-	this.setPreferredSize(dim);
-    }
-
-    /**
-     * L'interface [Observer] demande de fournir une méthode [update], qui
-     * sera appelée lorsque la vue sera notifiée d'un changement dans le
-     * modèle. Ici on se content de réafficher toute la grille avec la méthode
-     * prédéfinie [repaint].
-     */
-    public void update() { repaint(); }
-
-    /**
-     * Les éléments graphiques comme [JPanel] possèdent une méthode
-     * [paintComponent] qui définit l'action à accomplir pour afficher cet
-     * élément. On la redéfinit ici pour lui confier l'affichage des cellules.
-     *
-     * La classe [Graphics] regroupe les éléments de style sur le dessin,
-     * comme la couleur actuelle.
-     */
-    /**
-     * Fonction auxiliaire de dessin d'une cellule.
-     * Ici, la classe [Cellule] ne peut être désignée que par l'intermédiaire
-     * de la classe [CModele] à laquelle elle est interne, d'où le type
-     * [CModele.Cellule].
-     * Ceci serait impossible si [Cellule] était déclarée privée dans [CModele].
-     */
-        /** Coloration d'un rectangle. */
-    
-}
-
-
-
-
-
-
-class VueCommandesMenu extends JPanel {
-    /**
-     * Pour que le bouton puisse transmettre ses ordres, on garde une
-     * référence au modèle.
-     */
-    /** Constructeur. */
-    public VueCommandesMenu() {
-		/**
-		 * On crée un nouveau bouton, de classe [JButton], en précisant le
-		 * texte qui doit l'étiqueter.
-		 * Puis on ajoute ce bouton au panneau [this].
-		 */
-        JPanel boutons = new JPanel();
-    	boutons.setLayout(new BoxLayout(boutons, BoxLayout.LINE_AXIS));
-        boutons.add(new JLabel("Combien d'aventuriers partiront en expédition? "));
-        JPanel bouton = new JPanel();
-    	
-		JButton deuxJoueurs = new JButton("2");
-		deuxJoueurs.setLocation(this.getHeight()/2, this.getWidth()/2);
-		boutons.add(deuxJoueurs);
-		JButton troisJoueurs = new JButton("3");
-		troisJoueurs.setLocation(this.getHeight()/2, this.getWidth()/2);
-		boutons.add(troisJoueurs);
-		JButton quatreJoueurs = new JButton("4");
-		quatreJoueurs.setLocation(this.getHeight()/2, this.getWidth()/2);
-		boutons.add(quatreJoueurs);
-		
-		this.add(boutons, BorderLayout.NORTH);
-		ControleurMenu ctrlM = new ControleurMenu();
-		/** Enregistrement du contrôleur comme auditeur du bouton. */
-		deuxJoueurs.addActionListener(ctrlM);
-		troisJoueurs.addActionListener(ctrlM);
-		quatreJoueurs.addActionListener(ctrlM);
-		
-	
-    }
-}
-
-
-
-
-
-
 class ControleurMenu implements ActionListener{
-    /**
-     * On garde un pointeur vers le modèle, car le contrôleur doit
-     * provoquer un appel de méthode du modèle.
-     * Remarque : comme cette classe est interne, cette inscription
-     * explicite du modèle est inutile. On pourrait se contenter de
-     * faire directement référence au modèle enregistré pour la classe
-     * englobante [VueCommandes].
-     */
     public ControleurMenu() { }
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -1320,21 +1575,19 @@ class ControleurMenu implements ActionListener{
 		case "2":
 			CVueMenu.resultat = 2;
 			CModele modele2 = new CModele(2);
-			CVue vue2 = new CVue(modele2); 
+			new CVue(modele2); 
 			break;
 		case "3":
 			CVueMenu.resultat = 3;
 			CModele modele3 = new CModele(3);
-			CVue vue3 = new CVue(modele3);
+			new CVue(modele3);
 			break;
 		case "4":
 			CVueMenu.resultat = 4;
 			CModele modele4 = new CModele(4);
-			CVue vue4 = new CVue(modele4);
+			new CVue(modele4);
 			break;
 		}
-		
+		new CVueControles();
 	}
 }
-
-/** Fin du contrôleur. */
