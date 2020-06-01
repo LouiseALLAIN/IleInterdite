@@ -425,7 +425,6 @@ class CVueMenu {
      * VueGrille et VueCommandes sont deux classes définies plus loin, pour
      * nos deux parties de l'interface graphique.
      */
-    private VueMenu grille;
     private VueCommandesMenu commandes;
     /** Construction d'une vue attachée à un modèle. */
     public CVueMenu() {
@@ -448,8 +447,6 @@ class CVueMenu {
     frame.add(img, BorderLayout.PAGE_START);
 
 	/** Définition des deux vues et ajout à la fenêtre. */
-	VueMenu menu = new VueMenu();
-	frame.add(menu);
 	VueCommandesMenu commandes = new VueCommandesMenu();
 	bouton.setLocation(frame.getHeight()/2, frame.getWidth()/2);
 	bouton.add(commandes);
@@ -484,19 +481,49 @@ class CVueMenu {
 		}
 	}
 }
-
-class VueMenu extends JPanel implements Observer {
-    /** On maintient une référence vers le modèle. */
-    /** Définition d'une taille (en pixels) pour l'affichage des cellules. */
-    private final static int TAILLE = 20;
-
-    /** Constructeur. */
-    public VueMenu() {
-	Dimension dim = new Dimension(TAILLE*CModele.LARGEUR,
-				      TAILLE*CModele.HAUTEUR);
-	this.setPreferredSize(dim);
+class CVueControles {
+    public static int resultat;
+	/**
+     * JFrame est une classe fournie pas Swing. Elle représente la fenêtre
+     * de l'application graphique.
+     */
+    private JFrame frame;
+    /**
+     * VueGrille et VueCommandes sont deux classes définies plus loin, pour
+     * nos deux parties de l'interface graphique.
+     */
+    /** Construction d'une vue attachée à un modèle. */
+    public CVueControles() {
+	/** Définition de la fenêtre principale. */
+	frame = new JFrame();
+	frame.setTitle("Controles");
+	JPanel text = new JPanel();   
+	text.setLayout(new BoxLayout(text, BoxLayout.PAGE_AXIS));
+    text.add(new JLabel("Déplacement d'un joueur : flèches du clavier"));
+    text.add(new JLabel("Assèchement d'une zone : boutons"));
+    text.add(new JLabel("Fin de tour : touche entrée"));
+    text.add(new JLabel("Récupération d'un artéfact : touche espace"));
+    text.add(new JLabel("Echange de clé : Fx suivi de y où :"));
+    text.add(new JLabel("     x corresponds au numéro du joueur auquel on souhaite donner une clé"));
+    text.add(new JLabel("     y corresponds à l'initiale de la ressource que l'on souhaite donner :"));
+    text.add(new JLabel("          E = Eau"));
+    text.add(new JLabel("          A = Air"));
+    text.add(new JLabel("          F = Feu"));
+    text.add(new JLabel("          T = Terre"));
+    text.add(new JLabel("Exemple : F1 suivi de E permet de donner une clé d'eau au joueur 1"));
+    text.add(new JLabel("Utilisation hélicoptère : Clique gauche sur la zone d'arrivée"));
+    text.add(new JLabel("Utilisation sac de sable : Clique gauche sur la zone à assécher"));
+    text.add(new JLabel("Actions spéciales :"));
+    text.add(new JLabel("     Pilote : Clique sur la roulette de la souris puis clique gauche sur la zone d'arrivée"));
+    text.add(new JLabel("     Explorateur : Boutons pour assécher + clique sur la roulette puis clique gauche sur la zone où aller pour le déplacement diagonal"));
+    JPanel position = new JPanel();
+    position.add(text);
+    frame.add(position);
+    frame.pack();
+	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	frame.setVisible(true);
     }
-    public void update() { repaint(); }
-    
 }
+
+
 
