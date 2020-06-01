@@ -56,6 +56,7 @@ class CModele extends Observable {
     	for(int i = 0; i < nbJoueurs; i++) {
     		joueurs[i] = new Joueur(this, x, y, roles.aucun);
     		int a = ThreadLocalRandom.current().nextInt(0, rolesPossibles.size());
+    		//Décommenter la ligne suivante pour activer les rôles
     		//joueurs[i] = new Joueur(this, x, y, rolesPossibles.get(a));
     		rolesPossibles.remove(a);
     	}
@@ -395,32 +396,46 @@ class CModele extends Observable {
 	    	cellules[joueurs[i].x][joueurs[i].y].presenceJoueur = true;
 	    }
 	    //Si le joueur a épuisé toutes ses actions, on passe au tour suivant
-    	if (nbActions >= 3) {
-    		tourSuivant();
-    	}
-	    	notifyObservers();
+    	if (nbActions >= 3) tourSuivant();
+	    notifyObservers();
     }
     
+    /**
+     * Active le pouvoir du joueur
+     * @param x : l'abscisse de la case visée
+     * @param y : l'ordonnée de la case visée
+     */
     public void utilisePouvoir(int x, int y) {
     	if (joueurs[tour].role == roles.pilote) pilote(x, y);
     	if (joueurs[tour].role == roles.explorateur) explore(x, y);
     }
     
+    /**
+     * Utilise le pouvoir du pilote
+     * @param xx : l'abscisse de la zone ou le joueur va se rendre
+     * @param yy : l'ordonnée de la zone où le joueur va le rendre
+     */
     public void pilote(int xx, int yy) {
+    	//On vérifie que la zone n'est pas submergée
     	if(cellules[xx][yy].etat != etat.submergee) {
 	    	cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
 	    	joueurs[tour].x=xx;
 	    	joueurs[tour].y=yy;
+	    	//Comme le pouvoir du pilote est fort, nous avons décidé qu'il couterait deux actions
 	    	nbActions+=2;
 	    	cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = true;
-	    	if (nbActions >= 3) {
-	        tourSuivant();
-	        }
+	    	if (nbActions >= 3) tourSuivant();
     	}
     	notifyObservers();
     }
     
+    /**
+     * Utilise le pouvoir de l'explorateur
+     * @param xx : l'abscisse de la zone où le joueur va se rendre
+     * @param yy : l'ordonnée de la zone où le joueur va se rendre
+     */
     public void explore(int xx, int yy) {
+    	//On vérifie que la zone est accessible à l'explorateur
     	if(xx <= joueurs[tour].x+1 && xx >= joueurs[tour].x - 1 && yy <= joueurs[tour].y+1 && yy >= joueurs[tour].y-1
     			&& (joueurs[tour].x != xx || joueurs[tour].y != yy)
     			&& cellules[xx][yy].etat != etat.submergee) {
@@ -429,9 +444,7 @@ class CModele extends Observable {
 	    		joueurs[tour].y=yy;
 	    		nbActions++;
 	    		cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = true;
-	    		if (nbActions >= 3) {
-	        		tourSuivant();
-	        	}
+	    		if (nbActions >= 3) tourSuivant();
     	notifyObservers();
     	}
     }
@@ -461,9 +474,7 @@ class CModele extends Observable {
     		}
     	}
     	//Si le joueur a épuisé toutes ses actions, on passe au tour suivant
-    	if (nbActions >= 3) {
-    		tourSuivant();
-    	}
+    	if (nbActions >= 3) tourSuivant();
 	    	notifyObservers();
 	   
     }
@@ -503,9 +514,7 @@ class CModele extends Observable {
     		artefacts[3] = tour+1;
     	}
     	//Si le joueur a épuisé toutes ses actions, on passe au tour suivant
-    	if (nbActions >= 3) {
-    		tourSuivant();
-    	}
+    	if (nbActions >= 3) tourSuivant();
     	notifyObservers();
     }
     
@@ -597,9 +606,7 @@ class CModele extends Observable {
     		}
     	}
     	//Si le joueur a épuisé toutes ses actions, on passe au tour suivant
-    	if (nbActions >= 3) {
-    		tourSuivant();
-    	}
+    	if (nbActions >= 3) tourSuivant();
     	notifyObservers();
     	
     }

@@ -300,7 +300,9 @@ class VueGrille extends JPanel implements Observer {
     }
 }
 
-
+/**
+ * Une classe montrant les informations utiles aux joueurs
+ */
 class VuePlayer extends JPanel implements Observer {
 
     private CModele modele;
