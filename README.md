@@ -22,7 +22,7 @@ Nous avons créé la classe Joueur qui implémente chaque joueur et les avons pl
 
 ### Problèmes rencontrés
 
-Dans cette phase du projet, nous avons décidé de créer un menu demandant le nombre de joueur, ce qui a été particulièrement compliqué. Cela passait par la création d'un autre JFrame et d'une vue alternative, le tout créant la JFrame principale avec le modèle correspondant au nombre de joueurs demandé. Nous avons aussi eu des difficultés à implémenter les déplacements grâce aux touches du clavier (nous avions tout d'abord fait des boutons, moins ergonomiques) et à faire en sorte que les informations contenues sur le panneau latéral s'actualisent au fil de la partie.
+Dans cette phase du projet, nous avons décidé de créer un menu demandant le nombre de joueur, ce qui a été particulièrement compliqué. Cela passait par la création d'un autre JFrame et d'une vue alternative, le tout créant la JFrame principale avec le modèle correspondant au nombre de joueurs demandé. Nous avons aussi eu des difficultés à implémenter les déplacements grâce aux touches du clavier (nous avions tout d'abord fait des boutons, moins ergonomiques) et à faire en sorte que les informations contenues sur le panneau latéral s'actualisent au fil de la partie. Nous avons aussi eu des difficultés à placer correctements les différentes informations sur ce panneau latéral.
 
 ## 3. Sa place est dans un musée
 
@@ -34,11 +34,17 @@ Nous avons inclus dans notre modèle les clés pouvant être possédées par un 
 
 ### Fonctionnalités implémentées
 
-Nous avons réalisé le premier et le deuxième point de cette partie. Nous avons tout d'abord fait en sorte qu'il faille désormais 4 clés pour récupérer un artéfact en changeant la méthode recupere() et avons implémenté l'échange de clé grâce au clavier. Nous avons aussi ajouté l'hélicoptère et le sac de sable, qui ont 10% de chance d'être obtenus à la fin de chaque tour. L'hélicoptère et le sac de sable peuvent être utilisés grâce à un clic de la souris sur la zone concernée. Pour réaliser le sac de sable, nous avons dû modifier la méthode asseche(). 
+Nous avons tout d'abord fait en sorte qu'il faille désormais 4 clés pour récupérer un artéfact en changeant la méthode recupere() et avons implémenté l'échange de clé grâce au clavier. 
+Nous avons aussi ajouté l'hélicoptère et le sac de sable, qui ont 10% de chance d'être obtenus à la fin de chaque tour. L'hélicoptère et le sac de sable peuvent être utilisés grâce à un clic de la souris sur la zone concernée. Pour réaliser le sac de sable, nous avons dû modifier la méthode asseche(). 
+Nous avons créé les paquets de cartes demandés en utilisant une classe paramétrée mais ne sommes pas sûrs d'avoir bien compris les consignes, notamment en ce qu'il s'agit de la montée des eaux.
+Enfin, nous avons créé les rôles spéciaux excepté celui du navigateur qui sont distribués aléatoirement aux joueurs, l'utilisation de chaque capacité spéciale varie selon le rôle.
 
 ### Problèmes rencontrés
 
-Nous avons rencontré des problèmes pour l'échange de clé puisque nous voulions utiliser une suite de touches (par exemple 1 puis E pour donner une clé d'eau au joueur 1) mais cela a été compliqué. Par ailleurs, sans pavé tactile, nous avons du remplacer 1 par F1 ce qui nous oblige alors à faire Fn+F1 suivi de E. En ce qu'il s'agit du sac de sable et de l'hélicoptère, nous avons rencontré quelques difficultés dans l'utilisation des touches de la souris et dû calcul de la case concernée. 
+Nous avons rencontré des problèmes pour l'échange de clé puisque nous voulions utiliser une suite de touches (par exemple 1 puis E pour donner une clé d'eau au joueur 1) mais cela a été compliqué. Par ailleurs, sans pavé tactile, nous avons du remplacer 1 par F1 ce qui nous oblige alors à faire Fn+F1 suivi de E. 
+En ce qu'il s'agit du sac de sable et de l'hélicoptère, nous avons rencontré quelques difficultés dans l'utilisation des touches de la souris et dû calcul de la case concernée. 
+Au niveau des cartes, la principale difficulté se trouve dans la compréhension de la consigne.
+En ce qu'il s'agit des rôles, nous avons eu beaucoup de mal en implémenté certains, notamment le pilote et l'explorateur car nous voulions, pour utiliser leurs capacités spéciales, faire une combinaison clavier/souris (shift suivi de la case où ils souhaitaient aller) mais n'avons pas réussi. Il faut donc cliquer sur la roulette de la souris avant de cliquer sur la case où l'on souhaite se déplacer. Nous n'avons aussi pas réussi à permettre aux joueurs de choisir leur rôle dans un menu graphique et avons donc décidé de les attribuer au hasard. 
 
 ## Travail graphique
 Nous avons représenté l'île par une grille rectangulaire de 15x10 cases, chaque case correspondant à une zone accessible. La figure sur la case est associée à son état : il y a trois images pour une zone sèche, inondée et submergée. Les zones spéciales (héliport, artefacts) sont représentées par des images en forme de cercles inscrits dans la case, afin que l'on puisse détecter l'état des cases sur lesquelles elles se trouvent. Enfin, les joueurs sont des images d'aventuriers de couleurs différentes, pour les différencier plus facilement,avec, en plus, un numéro qui se déplacent sur les cases. 
