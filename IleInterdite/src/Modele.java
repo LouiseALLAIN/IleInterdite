@@ -1,6 +1,10 @@
+package ilEiNTERDITE;
+
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 ////////////////////Classe principale modèle////////////////////
 
@@ -44,14 +48,18 @@ class CModele extends Observable {
     	int x = (int)(Math.random() * LARGEUR + 1);
     	int y = (int)(Math.random() * HAUTEUR + 1);
     	//Tous les joueurs commencent à l'héliport
-    	joueurs[0] = new Joueur(this, x, y, roles.messager);
-    	joueurs[1] = new Joueur(this, x, y, roles.ingenieur);
-    	if(nbJoueurs > 2) {
-    		joueurs[2] = new Joueur(this, x, y, roles.explorateur);
-    		if(nbJoueurs == 4) {
-    			joueurs[3] = new Joueur(this, x, y, roles.ingenieur);
-    			
-    		}
+    	List<roles> rolesPossibles = new ArrayList<>(); 
+        rolesPossibles.add(roles.ingenieur); 
+        rolesPossibles.add(roles.messager);
+        rolesPossibles.add(roles.plongeur);
+        rolesPossibles.add(roles.explorateur);
+        rolesPossibles.add(roles.pilote);
+        
+    	for(int i = 0; i < nbJoueurs; i++) {
+    		joueurs[i] = new Joueur(this, x, y, roles.aucun);
+    		int a = ThreadLocalRandom.current().nextInt(0, rolesPossibles.size());
+    		//joueurs[i] = new Joueur(this, x, y, rolesPossibles.get(a));
+    		rolesPossibles.remove(a);
     	}
 	    tour = 0;
 		cellules = new Cellule[LARGEUR+2][HAUTEUR+2];
