@@ -1,5 +1,3 @@
-package ilEiNTERDITE;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -43,7 +41,7 @@ class CVue {
 	frame.setTitle(" L'île interdite ");
 	JPanel text = new JPanel();
 	text.setLayout(new BoxLayout(text, BoxLayout.LINE_AXIS));
-    text.add(new JLabel("Cliquer sur un bouton pour assécher une zone inondée"));
+    text.add(new JLabel("Cliquer pour assécher une zone inondée"));
     JPanel bouton = new JPanel();
 	frame.setLayout(new FlowLayout());
 	grille = new VueGrille(modele);
@@ -99,16 +97,10 @@ class VueCommandes extends JPanel {
 		this.add(Asseche);
 		this.add(AssecheGauche);
 		this.add(AssecheDroite);
-		//if(modele.getJoueurs(modele.getTour()).role == roles.explorateur) {
-			this.add(AssecheHautDroite);
-			this.add(AssecheHautGauche);
-			this.add(AssecheBasDroite);
-			this.add(AssecheBasGauche);
-		//}
-		/*this.add(AssecheHautDroite);
+		this.add(AssecheHautDroite);
 		this.add(AssecheHautGauche);
+		this.add(AssecheBasDroite);
 		this.add(AssecheBasGauche);
-		this.add(AssecheBasDroite);*/
 		AssecheGauche.setLocation(Frame.WIDTH/2, -Frame.HEIGHT/2);
 		JButton abandon = new JButton("Abandonner");
 		this.add(abandon);
@@ -124,8 +116,7 @@ class VueCommandes extends JPanel {
 		AssecheBas.addKeyListener(ctrl);
 		Asseche.addKeyListener(ctrl);
 		AssecheGauche.addKeyListener(ctrl);
-		abandon.addActionListener(ctrl);
-		
+		abandon.addActionListener(ctrl);	
 		AssecheHautDroite.addActionListener(ctrl);
 		AssecheBasDroite.addActionListener(ctrl);
 		AssecheBasGauche.addActionListener(ctrl);
@@ -159,6 +150,7 @@ class VueGrille extends JPanel implements Observer {
 	this.add(fin);
 	Controleur ctrl = new Controleur(modele);
 	this.addMouseListener(ctrl);
+	this.addKeyListener(ctrl);
     }
 
     /**
@@ -326,10 +318,10 @@ class VuePlayer extends JPanel implements Observer {
   	this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
   	this.add(new JLabel("Nombre de joueurs: " + modele.nbJoueurs));
   	this.add(new JLabel("Au tour du joueur: " + (modele.getTour()+1)));
-  	this.add(new JLabel("Nombre d'actions restantes: " + (3-actions)));
+  	this.add(new JLabel("Nombre d'actions restantes: " + (int)(3-actions)));
   	for (int i = 0; i < modele.nbJoueurs; i++) {
-  		this.add(new JLabel("Joueur " + (i+1) + " (" + 
-  				modele.getJoueurs(i).role +") : " + 
+  		this.add(new JLabel("Joueur " + (i+1) +
+  				" (" + modele.getJoueurs(i).role +") : " +
   				modele.getJoueurs(i).cleEau + " Clés eau, " + 
   				modele.getJoueurs(i).cleAir + " Clés air, " + 
   				modele.getJoueurs(i).cleFeu + " Clés feu, " + 
@@ -348,14 +340,14 @@ class VuePlayer extends JPanel implements Observer {
     	float actions = modele.getNbActions();  //actions
     	this.add(new JLabel("Nombre de joueurs: " + modele.nbJoueurs));
       	this.add(new JLabel("Au tour du joueur: " + (modele.getTour()+1)));
-      	this.add(new JLabel("Nombre d'actions restantes: " + (3-actions)));
+      	this.add(new JLabel("Nombre d'actions restantes: " + (int)(3-actions+0.5)));
       	for (int i = 0; i < modele.nbJoueurs; i++) {
-      		this.add(new JLabel("Joueur " + (i+1) + " (" + 
-      				modele.getJoueurs(i).role +") : " + 
+      		this.add(new JLabel("Joueur " + (i+1) + 
+      				" (" + modele.getJoueurs(i).role +") : " +
       				modele.getJoueurs(i).cleEau + " Clés eau, " + 
       				modele.getJoueurs(i).cleAir + " Clés air, " + 
       				modele.getJoueurs(i).cleFeu + " Clés feu, " + 
-      				modele.getJoueurs(i).cleTerre + " Clés terre, " +
+      				modele.getJoueurs(i).cleTerre + " Clés terre, " + 
       				modele.getJoueurs(i).helicoptere + " Hélicoptères, " +
       				modele.getJoueurs(i).sacSable + " Sacs de sable "));
       	}

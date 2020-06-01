@@ -1,5 +1,4 @@
-package ilEiNTERDITE;
 
 public enum roles {
-	aucun, plongeurRate, plongeur, explorateur, pilote, ingenieur;
+	aucun, messager, plongeur, explorateur, pilote, ingenieur;
 }
