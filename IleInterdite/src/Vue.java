@@ -40,22 +40,20 @@ class CVue {
 	frame = new JFrame();
 	frame.setTitle(" L'île interdite ");
 	JPanel text = new JPanel();
-	text.setLayout(new BoxLayout(text, BoxLayout.LINE_AXIS));
     text.add(new JLabel("Cliquer pour assécher une zone inondée"));
     JPanel bouton = new JPanel();
-	frame.setLayout(new FlowLayout());
+	frame.setLayout(new BorderLayout());
+	frame.setResizable(false);
 	grille = new VueGrille(modele);
-	frame.add(grille);
 	commandes = new VueCommandes(modele);
-	bouton.setLayout(new BoxLayout(bouton, BoxLayout.PAGE_AXIS));
 	bouton.add(commandes);
     JPanel position = new JPanel();
-    position.setLayout(new BoxLayout(position, BoxLayout.PAGE_AXIS));
     position.add(text);
     position.add(bouton);
     player = new VuePlayer(modele);
-    position.add(player);
-    frame.add(position);
+    frame.add(grille, BorderLayout.CENTER);
+    frame.add(position, BorderLayout.PAGE_END);
+    frame.add(player, BorderLayout.EAST);
 	frame.pack();
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	frame.setVisible(true);
@@ -316,7 +314,6 @@ class VuePlayer extends JPanel implements Observer {
 	modele.addObserver(this);
   	float actions = modele.getNbActions();  //actions
   	this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-  	this.add(new JLabel("Nombre de joueurs : " + modele.nbJoueurs));
   	if(modele.getJoueurs(modele.getTour()).role != roles.aucun) this.add(new JLabel("Au tour du joueur " + (modele.getTour()+1) +
   			" (" + modele.getJoueurs(modele.getTour()).role + ")"));
   	else this.add(new JLabel("Au tour du joueur " + (modele.getTour()+1)));
@@ -347,7 +344,6 @@ class VuePlayer extends JPanel implements Observer {
     public void update() { 
     	this.removeAll();
     	float actions = modele.getNbActions();  //actions
-    	this.add(new JLabel("Nombre de joueurs : " + modele.nbJoueurs));
     	if(modele.getJoueurs(modele.getTour()).role != roles.aucun) this.add(new JLabel("Au tour du joueur " + (modele.getTour()+1) +
       			" (" + modele.getJoueurs(modele.getTour()).role + ")"));
       	else this.add(new JLabel("Au tour du joueur " + (modele.getTour()+1)));
