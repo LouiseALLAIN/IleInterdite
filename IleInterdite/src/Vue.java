@@ -316,16 +316,25 @@ class VuePlayer extends JPanel implements Observer {
 	modele.addObserver(this);
   	float actions = modele.getNbActions();  //actions
   	this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-  	this.add(new JLabel("Nombre de joueurs: " + modele.nbJoueurs));
-  	this.add(new JLabel("Au tour du joueur: " + (modele.getTour()+1)));
-  	this.add(new JLabel("Nombre d'actions restantes: " + (int)(3-actions)));
+  	this.add(new JLabel("Nombre de joueurs : " + modele.nbJoueurs));
+  	if(modele.getJoueurs(modele.getTour()).role != roles.aucun) this.add(new JLabel("Au tour du joueur " + (modele.getTour()+1) +
+  			" (" + modele.getJoueurs(modele.getTour()).role + ")"));
+  	else this.add(new JLabel("Au tour du joueur " + (modele.getTour()+1)));
+  	this.add(new JLabel("Nombre d'actions restantes : " + (int)(3-actions)));
   	for (int i = 0; i < modele.nbJoueurs; i++) {
-  		this.add(new JLabel("Joueur " + (i+1) +
+  		if(modele.getJoueurs(modele.getTour()).role != roles.aucun) this.add(new JLabel("Joueur " + (i+1) + 
   				" (" + modele.getJoueurs(i).role +") : " +
   				modele.getJoueurs(i).cleEau + " Clés eau, " + 
   				modele.getJoueurs(i).cleAir + " Clés air, " + 
   				modele.getJoueurs(i).cleFeu + " Clés feu, " + 
-  				modele.getJoueurs(i).cleTerre + " Clés terre, " +
+  				modele.getJoueurs(i).cleTerre + " Clés terre, " + 
+  				modele.getJoueurs(i).helicoptere + " Hélicoptères, " +
+  				modele.getJoueurs(i).sacSable + " Sacs de sable "));
+  		else this.add(new JLabel("Joueur " + (i+1) + " : " +
+  				modele.getJoueurs(i).cleEau + " Clés eau, " + 
+  				modele.getJoueurs(i).cleAir + " Clés air, " + 
+  				modele.getJoueurs(i).cleFeu + " Clés feu, " + 
+  				modele.getJoueurs(i).cleTerre + " Clés terre, " + 
   				modele.getJoueurs(i).helicoptere + " Hélicoptères, " +
   				modele.getJoueurs(i).sacSable + " Sacs de sable "));
   	}
@@ -338,12 +347,21 @@ class VuePlayer extends JPanel implements Observer {
     public void update() { 
     	this.removeAll();
     	float actions = modele.getNbActions();  //actions
-    	this.add(new JLabel("Nombre de joueurs: " + modele.nbJoueurs));
-      	this.add(new JLabel("Au tour du joueur: " + (modele.getTour()+1)));
-      	this.add(new JLabel("Nombre d'actions restantes: " + (int)(3-actions+0.5)));
+    	this.add(new JLabel("Nombre de joueurs : " + modele.nbJoueurs));
+    	if(modele.getJoueurs(modele.getTour()).role != roles.aucun) this.add(new JLabel("Au tour du joueur " + (modele.getTour()+1) +
+      			" (" + modele.getJoueurs(modele.getTour()).role + ")"));
+      	else this.add(new JLabel("Au tour du joueur " + (modele.getTour()+1)));
+      	this.add(new JLabel("Nombre d'actions restantes : " + (int)(3-actions+0.5)));
       	for (int i = 0; i < modele.nbJoueurs; i++) {
-      		this.add(new JLabel("Joueur " + (i+1) + 
+      		if(modele.getJoueurs(modele.getTour()).role != roles.aucun) this.add(new JLabel("Joueur " + (i+1) + 
       				" (" + modele.getJoueurs(i).role +") : " +
+      				modele.getJoueurs(i).cleEau + " Clés eau, " + 
+      				modele.getJoueurs(i).cleAir + " Clés air, " + 
+      				modele.getJoueurs(i).cleFeu + " Clés feu, " + 
+      				modele.getJoueurs(i).cleTerre + " Clés terre, " + 
+      				modele.getJoueurs(i).helicoptere + " Hélicoptères, " +
+      				modele.getJoueurs(i).sacSable + " Sacs de sable "));
+      		else this.add(new JLabel("Joueur " + (i+1) + " : " +
       				modele.getJoueurs(i).cleEau + " Clés eau, " + 
       				modele.getJoueurs(i).cleAir + " Clés air, " + 
       				modele.getJoueurs(i).cleFeu + " Clés feu, " + 
