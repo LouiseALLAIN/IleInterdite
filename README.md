@@ -50,6 +50,6 @@ Ici, le problème majeur était de réussir à importer la première image. Nous
 (toutes les images sont prises de www.vectorstock.com, la musique provient de www.melodyloops.com)
 
 ## Répartition du travail
-Sakina: interface graphique + musique + menu
 Paul: menu + personnages particuliers (pilote, ...) + abandon
+Sakina: interface graphique + musique + menu
 Louise: partie 1 + 
