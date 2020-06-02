@@ -1,17 +1,34 @@
-import java.util.*;
-import java.util.List;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.File;
-import java.io.IOException;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.swing.*;
+import java.awt.EventQueue;
+import java.util.ArrayList;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.io.File;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 ////////////////////Schéma observateur/observé////////////////////
 
@@ -87,7 +104,6 @@ public class IleInterdite {
 }
 ////////////////////Fin classe principale////////////////////
 
-
 ////////////////////Classe principale modèle////////////////////
 
 /**
@@ -141,7 +157,7 @@ class CModele extends Observable {
     		joueurs[i] = new Joueur(this, x, y, roles.aucun);
     		int a = ThreadLocalRandom.current().nextInt(0, rolesPossibles.size());
     		//Décommenter la ligne suivante pour activer les rôles
-    		//joueurs[i] = new Joueur(this, x, y, rolesPossibles.get(a));
+    		joueurs[i] = new Joueur(this, x, y, rolesPossibles.get(a));
     		rolesPossibles.remove(a);
     	}
 	    tour = 0;
@@ -489,9 +505,9 @@ class CModele extends Observable {
      * @param x : l'abscisse de la case visée
      * @param y : l'ordonnée de la case visée
      */
-    public void utilisePouvoir(int x, int y) {
+    public void utilisePouvoir(boolean gauche, int x, int y) {
     	if (joueurs[tour].role == roles.pilote) pilote(x, y);
-    	if (joueurs[tour].role == roles.explorateur) explore(x, y);
+    	if (joueurs[tour].role == roles.explorateur) explore(gauche, x, y);
     }
     
     /**
@@ -518,18 +534,26 @@ class CModele extends Observable {
      * @param xx : l'abscisse de la zone où le joueur va se rendre
      * @param yy : l'ordonnée de la zone où le joueur va se rendre
      */
-    public void explore(int xx, int yy) {
+    public void explore(boolean gauche, int xx, int yy) {
     	//On vérifie que la zone est accessible à l'explorateur
-    	if(xx <= joueurs[tour].x+1 && xx >= joueurs[tour].x - 1 && yy <= joueurs[tour].y+1 && yy >= joueurs[tour].y-1
-    			&& (joueurs[tour].x != xx || joueurs[tour].y != yy)
-    			&& cellules[xx][yy].etat != etat.submergee) {
-    		    cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
-	    		joueurs[tour].x=xx;
-	    		joueurs[tour].y=yy;
-	    		nbActions++;
-	    		cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = true;
-	    		if (nbActions >= 3) tourSuivant();
-    	notifyObservers();
+    	if(gauche) {
+	    	if(xx <= joueurs[tour].x+1 && xx >= joueurs[tour].x - 1 && yy <= joueurs[tour].y+1 && yy >= joueurs[tour].y-1
+	    			&& (joueurs[tour].x != xx || joueurs[tour].y != yy)
+	    			&& cellules[xx][yy].etat != etat.submergee) {
+	    		    cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = false;
+		    		joueurs[tour].x=xx;
+		    		joueurs[tour].y=yy;
+		    		nbActions++;
+		    		cellules[joueurs[tour].x][joueurs[tour].y].presenceJoueur = true;
+		    		if (nbActions >= 3) tourSuivant();
+	    	notifyObservers();
+	    	}
+    	}
+    	else {
+    		if(xx <= joueurs[tour].x+1 && xx >= joueurs[tour].x - 1 && yy <= joueurs[tour].y+1 && yy >= joueurs[tour].y-1
+	    			&& cellules[xx][yy].etat == etat.inondee) {
+    			asseche(false, xx, yy);    			
+    		}
     	}
     }
     
@@ -866,7 +890,7 @@ class Cartes<T>{
  * On définit une classe chapeau [CVue] qui crée la fenêtre principale de 
  * l'application et contient les deux parties principales de notre vue :
  *  - Une zone d'affichage où on voit l'ensemble des cellules.
- *  - Une zone de commande avec un bouton pour passer à la génération suivante.
+ *  - Une zone de commande avec des boutons et des informations
  */
 class CVue {
     /**
@@ -904,10 +928,7 @@ class CVue {
 }
 
 /**
- * Une classe pour représenter la zone contenant le bouton.
- *
- * Cette zone n'aura pas à être mise à jour et ne sera donc pas un observateur.
- * En revanche, comme la zone précédente, celle-ci est un panneau [JPanel].
+ * Une classe pour représenter la zone contenant le bouton et les informations
  */
 class VueCommandes extends JPanel {
     /**
@@ -929,19 +950,11 @@ class VueCommandes extends JPanel {
 		JButton Asseche = new JButton("o");
 		JButton AssecheGauche = new JButton("g");
 		JButton AssecheDroite = new JButton("d"); 
-		JButton AssecheHautGauche = new JButton("hg");
-		JButton AssecheHautDroite = new JButton("hd");
-		JButton AssecheBasGauche = new JButton("bg");
-		JButton AssecheBasDroite = new JButton("bd"); 
 		this.add(AssecheHaut);
 		this.add(AssecheBas);
 		this.add(Asseche);
 		this.add(AssecheGauche);
 		this.add(AssecheDroite);
-		this.add(AssecheHautDroite);
-		this.add(AssecheHautGauche);
-		this.add(AssecheBasDroite);
-		this.add(AssecheBasGauche);
 		AssecheGauche.setLocation(Frame.WIDTH/2, -Frame.HEIGHT/2);
 		JButton abandon = new JButton("Abandonner");
 		this.add(abandon);
@@ -958,14 +971,6 @@ class VueCommandes extends JPanel {
 		Asseche.addKeyListener(ctrl);
 		AssecheGauche.addKeyListener(ctrl);
 		abandon.addActionListener(ctrl);	
-		AssecheHautDroite.addActionListener(ctrl);
-		AssecheBasDroite.addActionListener(ctrl);
-		AssecheBasGauche.addActionListener(ctrl);
-		AssecheHautGauche.addActionListener(ctrl);
-		AssecheHautDroite.addKeyListener(ctrl);
-		AssecheBasDroite.addKeyListener(ctrl);
-		AssecheBasGauche.addKeyListener(ctrl);
-		AssecheHautGauche.addKeyListener(ctrl);
     }
 }
 
@@ -1257,15 +1262,7 @@ class VueCommandesMenu extends JPanel {
 
 class CVueMenu {
     public static int resultat;
-	/**
-     * JFrame est une classe fournie pas Swing. Elle représente la fenêtre
-     * de l'application graphique.
-     */
     private JFrame frame;
-    /**
-     * VueGrille et VueCommandes sont deux classes définies plus loin, pour
-     * nos deux parties de l'interface graphique.
-     */
     private VueCommandesMenu commandes;
     /** Construction d'une vue attachée à un modèle. */
     public CVueMenu() {
@@ -1322,18 +1319,13 @@ class CVueMenu {
 		}
 	}
 }
+
+/**
+* Classe pour une fenêtre à part contenant les controles du jeu
+**/
 class CVueControles {
     public static int resultat;
-	/**
-     * JFrame est une classe fournie pas Swing. Elle représente la fenêtre
-     * de l'application graphique.
-     */
-    private JFrame frame;
-    /**
-     * VueGrille et VueCommandes sont deux classes définies plus loin, pour
-     * nos deux parties de l'interface graphique.
-     */
-    /** Construction d'une vue attachée à un modèle. */
+	JFrame frame;
     public CVueControles() {
 	/** Définition de la fenêtre principale. */
 	frame = new JFrame();
@@ -1356,7 +1348,7 @@ class CVueControles {
     text.add(new JLabel("Utilisation sac de sable : Clique gauche sur la zone à assécher"));
     text.add(new JLabel("Actions spéciales :"));
     text.add(new JLabel("     Pilote : Clique sur la roulette de la souris puis clique gauche sur la zone d'arrivée"));
-    text.add(new JLabel("     Explorateur : Boutons pour assécher + clique sur la roulette puis clique gauche sur la zone où aller pour le déplacement diagonal"));
+    text.add(new JLabel("     Explorateur : Clique sur la roulette puis clique gauche sur la zone ciblée pour le déplacement ou clique droit pour assécher"));
     JPanel position = new JPanel();
     position.add(text);
     frame.add(position);
@@ -1366,23 +1358,15 @@ class CVueControles {
     }
 }
 
-///////////Fin vue//////////
-
 /**
- * Classe pour notre contrôleur rudimentaire.
+ * Classe pour notre contrôleur
  *
- * Le contrôleur implémente l'interface [ActionListener] qui demande
- * uniquement de fournir une méthode [actionPerformed] indiquant la
- * réponse du contrôleur à la réception d'un événement.
+ * Le contrôleur implémente les interfaces ActionListener, LeyListener et MouseListener
  */
 class Controleur implements ActionListener, KeyListener, MouseListener {
     /**
      * On garde un pointeur vers le modèle, car le contrôleur doit
      * provoquer un appel de méthode du modèle.
-     * Remarque : comme cette classe est interne, cette inscription
-     * explicite du modèle est inutile. On pourrait se contenter de
-     * faire directement référence au modèle enregistré pour la classe
-     * englobante [VueCommandes].
      */
     private CModele modele;
     private boolean[] j;
@@ -1395,10 +1379,14 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
     	}
     }
 
+    /**
+    * Gère les événements du clavier
+    **/
     public void keyPressed(KeyEvent e) {
     	if (modele.victoire() || modele.defaite() != 0) return;
 		int keyCode = e.getKeyCode();
 		switch (keyCode) {
+		//Les 4 cas suivants correspondent aux flèches du clavier pour le déplacement
 		case KeyEvent.VK_UP:
 			modele.deplace(KeyEvent.VK_UP);
 			break;
@@ -1411,12 +1399,15 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 		case KeyEvent.VK_LEFT:
 			modele.deplace(KeyEvent.VK_LEFT);
 			break;
+		//ENTER fait le passage au tour suivant
 		case KeyEvent.VK_ENTER:
 			modele.tourSuivant();
 			break;
+		//SPACE permet de récupérer un artéfact
 		case KeyEvent.VK_SPACE:
 			modele.recupere();
 			break;
+		//Choix de l'artéfact à échanger
 		case KeyEvent.VK_E:
 			for (int i = 0; i < modele.nbJoueurs; i++) {
 				if (j[i]) {
@@ -1450,9 +1441,11 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 			}
 			break;
 		}
+	    	//On annule l'action d'échanger un artéfact
 		for (int i = 0; i < modele.nbJoueurs; i++) {
 			j[i] = false;
 		}
+	    	//Choix du joueur pour l'échange d'un artéfact
 		switch(keyCode) {
 		case KeyEvent.VK_F1:
 			j[0] = true;
@@ -1480,6 +1473,9 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 	}
 
 	@Override
+	/**
+	*Réagit si on appuie sur un bouton
+	**/
 	public void actionPerformed(ActionEvent e) {
 		if (modele.victoire() || modele.defaite() != 0) return;
 		String actionCode = e.getActionCommand();
@@ -1499,18 +1495,6 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 		case "o":
 			modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y);
 			break;
-		case "hg":
-			modele.asseche(false, modele.getJoueurs(modele.getTour()).x-1, modele.getJoueurs(modele.getTour()).y-1);
-			break;
-		case "hd":
-			modele.asseche(false, modele.getJoueurs(modele.getTour()).x+1, modele.getJoueurs(modele.getTour()).y-1);
-			break;
-		case "bg":
-			modele.asseche(false, modele.getJoueurs(modele.getTour()).x-1, modele.getJoueurs(modele.getTour()).y+1);
-			break;
-		case "bd":
-			modele.asseche(false, modele.getJoueurs(modele.getTour()).x+1, modele.getJoueurs(modele.getTour()).y+1);;
-			break;
 		case "Abandonner":
 			modele.abandonner();
 			break;
@@ -1519,25 +1503,38 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 	}
 
 	@Override
+	/**
+	* Réagit au clic de souris
+	**/
 	public void mouseClicked(MouseEvent m) {
 		int mouseCode = m.getButton();
+		//Si on ne souhaite pas utiliser la capacité spéciale du personnage
 		if(!pouvoir) {
 			switch (mouseCode) {
+			//Clique gauche = hélicoptère
 			case MouseEvent.BUTTON1:
 				modele.prendreHelicoptere(m.getX()/40+1, m.getY()/40+1);
 				break;
+			//Clique sur la roulette pour activer un pouvoir
 			case MouseEvent.BUTTON2:
 				pouvoir = true;
 				break;
+			//Clique droit = sac sable
 			case MouseEvent.BUTTON3:
 				modele.asseche(true, m.getX()/40+1, m.getY()/40+1);
 				break;
 			}	
 		}
 		else {
-			System.out.println("je suis passé");
-			modele.utilisePouvoir(m.getX()/40+1, m.getY()/40+1);
 			pouvoir = false;
+			switch (mouseCode) {
+			case MouseEvent.BUTTON1:
+				modele.utilisePouvoir(true, m.getX()/40+1, m.getY()/40+1);
+				break;
+			case MouseEvent.BUTTON3:
+				modele.utilisePouvoir(false, m.getX()/40+1, m.getY()/40+1);
+				break;
+			}
 		}
 	}
 
@@ -1589,5 +1586,6 @@ class ControleurMenu implements ActionListener{
 			break;
 		}
 		new CVueControles();
+		
 	}
 }
