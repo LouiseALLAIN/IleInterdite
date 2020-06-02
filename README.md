@@ -49,7 +49,7 @@ Au niveau des cartes, la principale difficulté se trouve dans la compréhension
 En ce qu'il s'agit des rôles, nous avons eu beaucoup de mal en implémenté certains, notamment le pilote et l'explorateur car nous voulions, pour utiliser leurs capacités spéciales, faire une combinaison clavier/souris (shift suivi de la case où ils souhaitaient aller) mais n'avons pas réussi. Il faut donc cliquer sur la roulette de la souris avant de cliquer sur la case où l'on souhaite se déplacer. Nous n'avons aussi pas réussi à permettre aux joueurs de choisir leur rôle dans un menu graphique et avons donc décidé de les attribuer au hasard. 
 
 ## Travail graphique
-Nous avons représenté l'île par une grille rectangulaire de 15x10 cases, chaque case correspondant à une zone accessible. La figure sur la case est associée à son état : il y a trois images pour une zone sèche, inondée et submergée. Les zones spéciales (héliport, artefacts) sont représentées par des images en forme de cercles inscrits dans la case, afin que l'on puisse détecter l'état des cases sur lesquelles elles se trouvent. Enfin, les joueurs sont des images d'aventuriers de couleurs différentes, pour les différencier plus facilement,avec, en plus, un numéro qui se déplacent sur les cases. 
+Nous avons représenté l'île par une grille rectangulaire de 15x10 cases, chaque case correspondant à une zone accessible. La figure sur la case est associée à son état : il y a trois images pour une zone sèche, inondée et submergée. Les zones spéciales (héliport, artefacts) sont représentées par des images en forme de cercles inscrits dans la case, afin que l'on puisse détecter l'état des cases sur lesquelles elles se trouvent. Enfin, les joueurs sont des images d'aventuriers de couleurs différentes, pour les différencier plus facilement,avec, en plus, un numéro qui se déplacent sur les cases. \\
 Nous avons également ajouté une musique de fond qui se lance dès le démarrage du menu. Nous avons par ailleurs ajouté une fenêtre qui affiche les commandes du jeu.
 
 ### Problèmes rencontrés
@@ -58,6 +58,6 @@ Ici, le problème majeur était de réussir à importer la première image. Nous
 (toutes les images sont prises de www.vectorstock.com, la musique provient de www.melodyloops.com)
 
 ## Répartition du travail
-Paul: menu + personnages particuliers (pilote, ...) + abandon
-Sakina: interface graphique + musique + menu
-Louise: partie 1 + 
+Il faut savoir que nous avons commencé en deux groupes séparés (Louise travaillais seule au début et Paul et Sakina formaient un duo). Nous nous sommes rejoints au milieu de la partie 2 et avons mis en commun ce qui avait déjà été fait. 
+Par la suite, nous avons avancé ensemble selon nos disponibilités. Entre autres, Paul s'est principalement chargé du menu ainsi que des modalités de défaite et des personnages particuliers. Sakina s'est beaucoup investie dans le travail sur la vue ainsi que le respect de l'accessibilité des variables. Louise, quant-à-elle, s'est occupée du modèle, notamment la première partie, ainsi que du jeu de cartes, l'échange de clés et les actions spéciales (hélicoptère, sac de sable).
+Pour résumer, Louise a plutôt travaillé sur le modèle, Sakina sur la vue et Paul sur les contrôles, mais l'idée générale était plutôt d'avancer ensemble en s'aidant les uns les autres.
