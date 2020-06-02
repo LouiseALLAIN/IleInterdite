@@ -8,20 +8,14 @@ import java.awt.event.MouseListener;
 import javax.swing.SwingUtilities;
 
 /**
- * Classe pour notre contrôleur rudimentaire.
+ * Classe pour notre contrôleur
  *
- * Le contrôleur implémente l'interface [ActionListener] qui demande
- * uniquement de fournir une méthode [actionPerformed] indiquant la
- * réponse du contrôleur à la réception d'un événement.
+ * Le contrôleur implémente les interfaces ActionListener, LeyListener et MouseListener
  */
 class Controleur implements ActionListener, KeyListener, MouseListener {
     /**
      * On garde un pointeur vers le modèle, car le contrôleur doit
      * provoquer un appel de méthode du modèle.
-     * Remarque : comme cette classe est interne, cette inscription
-     * explicite du modèle est inutile. On pourrait se contenter de
-     * faire directement référence au modèle enregistré pour la classe
-     * englobante [VueCommandes].
      */
     private CModele modele;
     private boolean[] j;
@@ -34,10 +28,14 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
     	}
     }
 
+    /**
+    * Gère les événements du clavier
+    **/
     public void keyPressed(KeyEvent e) {
     	if (modele.victoire() || modele.defaite() != 0) return;
 		int keyCode = e.getKeyCode();
 		switch (keyCode) {
+		//Les 4 cas suivants correspondent aux flèches du clavier pour le déplacement
 		case KeyEvent.VK_UP:
 			modele.deplace(KeyEvent.VK_UP);
 			break;
@@ -50,12 +48,15 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 		case KeyEvent.VK_LEFT:
 			modele.deplace(KeyEvent.VK_LEFT);
 			break;
+		//ENTER fait le passage au tour suivant
 		case KeyEvent.VK_ENTER:
 			modele.tourSuivant();
 			break;
+		//SPACE permet de récupérer un artéfact
 		case KeyEvent.VK_SPACE:
 			modele.recupere();
 			break;
+		//Choix de l'artéfact à échanger
 		case KeyEvent.VK_E:
 			for (int i = 0; i < modele.nbJoueurs; i++) {
 				if (j[i]) {
@@ -89,9 +90,11 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 			}
 			break;
 		}
+	    	//On annule l'action d'échanger un artéfact
 		for (int i = 0; i < modele.nbJoueurs; i++) {
 			j[i] = false;
 		}
+	    	//Choix du joueur pour l'échange d'un artéfact
 		switch(keyCode) {
 		case KeyEvent.VK_F1:
 			j[0] = true;
@@ -119,6 +122,9 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 	}
 
 	@Override
+	/**
+	*Réagit si on appuie sur un bouton
+	**/
 	public void actionPerformed(ActionEvent e) {
 		if (modele.victoire() || modele.defaite() != 0) return;
 		String actionCode = e.getActionCommand();
@@ -158,16 +164,23 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 	}
 
 	@Override
+	/**
+	* Réagit au clic de souris
+	**/
 	public void mouseClicked(MouseEvent m) {
 		int mouseCode = m.getButton();
+		//Si on ne souhaite pas utiliser la capacité spéciale du personnage
 		if(!pouvoir) {
 			switch (mouseCode) {
+			//Clique gauche = hélicoptère
 			case MouseEvent.BUTTON1:
 				modele.prendreHelicoptere(m.getX()/40+1, m.getY()/40+1);
 				break;
+			//Clique sur la roulette pour activer un pouvoir
 			case MouseEvent.BUTTON2:
 				pouvoir = true;
 				break;
+			//Clique droit = sac sable
 			case MouseEvent.BUTTON3:
 				modele.asseche(true, m.getX()/40+1, m.getY()/40+1);
 				break;
