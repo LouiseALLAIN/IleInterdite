@@ -23,7 +23,7 @@ import javax.swing.JPanel;
  * On définit une classe chapeau [CVue] qui crée la fenêtre principale de 
  * l'application et contient les deux parties principales de notre vue :
  *  - Une zone d'affichage où on voit l'ensemble des cellules.
- *  - Une zone de commande avec un bouton pour passer à la génération suivante.
+ *  - Une zone de commande avec des boutons et des informations
  */
 class CVue {
     /**
@@ -61,10 +61,7 @@ class CVue {
 }
 
 /**
- * Une classe pour représenter la zone contenant le bouton.
- *
- * Cette zone n'aura pas à être mise à jour et ne sera donc pas un observateur.
- * En revanche, comme la zone précédente, celle-ci est un panneau [JPanel].
+ * Une classe pour représenter la zone contenant le bouton et les informations
  */
 class VueCommandes extends JPanel {
     /**
@@ -414,15 +411,7 @@ class VueCommandesMenu extends JPanel {
 
 class CVueMenu {
     public static int resultat;
-	/**
-     * JFrame est une classe fournie pas Swing. Elle représente la fenêtre
-     * de l'application graphique.
-     */
     private JFrame frame;
-    /**
-     * VueGrille et VueCommandes sont deux classes définies plus loin, pour
-     * nos deux parties de l'interface graphique.
-     */
     private VueCommandesMenu commandes;
     /** Construction d'une vue attachée à un modèle. */
     public CVueMenu() {
@@ -479,18 +468,13 @@ class CVueMenu {
 		}
 	}
 }
+
+/**
+* Classe pour une fenêtre à part contenant les controles du jeu
+**/
 class CVueControles {
     public static int resultat;
-	/**
-     * JFrame est une classe fournie pas Swing. Elle représente la fenêtre
-     * de l'application graphique.
-     */
-    private JFrame frame;
-    /**
-     * VueGrille et VueCommandes sont deux classes définies plus loin, pour
-     * nos deux parties de l'interface graphique.
-     */
-    /** Construction d'une vue attachée à un modèle. */
+	JFrame frame;
     public CVueControles() {
 	/** Définition de la fenêtre principale. */
 	frame = new JFrame();
