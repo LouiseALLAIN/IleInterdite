@@ -83,19 +83,11 @@ class VueCommandes extends JPanel {
 		JButton Asseche = new JButton("o");
 		JButton AssecheGauche = new JButton("g");
 		JButton AssecheDroite = new JButton("d"); 
-		JButton AssecheHautGauche = new JButton("hg");
-		JButton AssecheHautDroite = new JButton("hd");
-		JButton AssecheBasGauche = new JButton("bg");
-		JButton AssecheBasDroite = new JButton("bd"); 
 		this.add(AssecheHaut);
 		this.add(AssecheBas);
 		this.add(Asseche);
 		this.add(AssecheGauche);
 		this.add(AssecheDroite);
-		this.add(AssecheHautDroite);
-		this.add(AssecheHautGauche);
-		this.add(AssecheBasDroite);
-		this.add(AssecheBasGauche);
 		AssecheGauche.setLocation(Frame.WIDTH/2, -Frame.HEIGHT/2);
 		JButton abandon = new JButton("Abandonner");
 		this.add(abandon);
@@ -112,14 +104,6 @@ class VueCommandes extends JPanel {
 		Asseche.addKeyListener(ctrl);
 		AssecheGauche.addKeyListener(ctrl);
 		abandon.addActionListener(ctrl);	
-		AssecheHautDroite.addActionListener(ctrl);
-		AssecheBasDroite.addActionListener(ctrl);
-		AssecheBasGauche.addActionListener(ctrl);
-		AssecheHautGauche.addActionListener(ctrl);
-		AssecheHautDroite.addKeyListener(ctrl);
-		AssecheBasDroite.addKeyListener(ctrl);
-		AssecheBasGauche.addKeyListener(ctrl);
-		AssecheHautGauche.addKeyListener(ctrl);
     }
 }
 
@@ -497,7 +481,7 @@ class CVueControles {
     text.add(new JLabel("Utilisation sac de sable : Clique gauche sur la zone à assécher"));
     text.add(new JLabel("Actions spéciales :"));
     text.add(new JLabel("     Pilote : Clique sur la roulette de la souris puis clique gauche sur la zone d'arrivée"));
-    text.add(new JLabel("     Explorateur : Boutons pour assécher + clique sur la roulette puis clique gauche sur la zone où aller pour le déplacement diagonal"));
+    text.add(new JLabel("     Explorateur : Clique sur la roulette puis clique gauche sur la zone ciblée pour le déplacement ou clique droit pour assécher"));
     JPanel position = new JPanel();
     position.add(text);
     frame.add(position);

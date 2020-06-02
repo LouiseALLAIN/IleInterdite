@@ -144,18 +144,6 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 		case "o":
 			modele.asseche(false, modele.getJoueurs(modele.getTour()).x, modele.getJoueurs(modele.getTour()).y);
 			break;
-		case "hg":
-			modele.asseche(false, modele.getJoueurs(modele.getTour()).x-1, modele.getJoueurs(modele.getTour()).y-1);
-			break;
-		case "hd":
-			modele.asseche(false, modele.getJoueurs(modele.getTour()).x+1, modele.getJoueurs(modele.getTour()).y-1);
-			break;
-		case "bg":
-			modele.asseche(false, modele.getJoueurs(modele.getTour()).x-1, modele.getJoueurs(modele.getTour()).y+1);
-			break;
-		case "bd":
-			modele.asseche(false, modele.getJoueurs(modele.getTour()).x+1, modele.getJoueurs(modele.getTour()).y+1);;
-			break;
 		case "Abandonner":
 			modele.abandonner();
 			break;
@@ -187,9 +175,15 @@ class Controleur implements ActionListener, KeyListener, MouseListener {
 			}	
 		}
 		else {
-			System.out.println("je suis passé");
-			modele.utilisePouvoir(m.getX()/40+1, m.getY()/40+1);
 			pouvoir = false;
+			switch (mouseCode) {
+			case MouseEvent.BUTTON1:
+				modele.utilisePouvoir(true, m.getX()/40+1, m.getY()/40+1);
+				break;
+			case MouseEvent.BUTTON3:
+				modele.utilisePouvoir(false, m.getX()/40+1, m.getY()/40+1);
+				break;
+			}
 		}
 	}
 
@@ -227,19 +221,20 @@ class ControleurMenu implements ActionListener{
 		case "2":
 			CVueMenu.resultat = 2;
 			CModele modele2 = new CModele(2);
-			CVue vue2 = new CVue(modele2); 
+			new CVue(modele2); 
 			break;
 		case "3":
 			CVueMenu.resultat = 3;
 			CModele modele3 = new CModele(3);
-			CVue vue3 = new CVue(modele3);
+			new CVue(modele3);
 			break;
 		case "4":
 			CVueMenu.resultat = 4;
 			CModele modele4 = new CModele(4);
-			CVue vue4 = new CVue(modele4);
+			new CVue(modele4);
 			break;
 		}
+		new CVueControles();
 		
 	}
 }
